@@ -1,0 +1,31 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm p-4">
+    <h2 class="mb-4">Invite New User</h2>
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      <div class="mb-3">
+        <label for="id_email" class="form-label">User Email</label>
+        {{ form.email }}
+        {% if form.email.errors %}
+          <div class="text-danger small">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
+
+      <div class="mb-3">
+        <label for="id_role" class="form-label">Assign Role</label>
+        {{ form.role }}
+        {% if form.role.errors %}
+          <div class="text-danger small">{{ form.role.errors }}</div>
+        {% endif %}
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-paper-plane me-2"></i> Send Invite
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

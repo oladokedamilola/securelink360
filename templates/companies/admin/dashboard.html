@@ -1,0 +1,58 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}{{ company.name }} Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Onboarding Checklist -->
+    <div class="onboarding-widget">
+        <h3>🚀 Onboarding Checklist</h3>
+        <ul class="checklist">
+            <li class="{% if onboarding.company_profile %}done{% endif %}">Complete Company Profile</li>
+            <li class="{% if onboarding.invite_team %}done{% endif %}">Invite Your Team</li>
+            <li class="{% if onboarding.add_device %}done{% endif %}">Register First Device</li>
+            <li class="{% if onboarding.review_security %}done{% endif %}">Review Security Settings</li>
+        </ul>
+        {% if onboarding.complete %}
+            <div class="onboarding-complete">✅ Onboarding Complete!</div>
+        {% endif %}
+    </div>
+
+    <!-- Dashboard Widgets -->
+    <div class="dashboard-grid">
+
+        <!-- License Info -->
+        <div class="card p-3 shadow-sm">
+            <h4>💳 License Info</h4>
+            <p><strong>Plan:</strong> {{ license.plan }}</p>
+            <p><strong>Expires:</strong> {{ license.expiry_date }}</p>
+            <p><strong>Seats:</strong> {{ license.seats }}</p>
+        </div>
+
+        <!-- Devices -->
+        <div class="card p-3 shadow-sm">
+            <h4>💻 Devices</h4>
+            <ul>
+                {% for device in devices %}
+                    <li>{{ device.name }} ({{ device.ip_address }})</li>
+                {% empty %}
+                    <li>No devices registered yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Alerts -->
+        <div class="card p-3 shadow-sm">
+            <h4>⚠️ Recent Alerts</h4>
+            <ul>
+                {% for alert in alerts %}
+                    <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.message }}</li>
+                {% empty %}
+                    <li>No alerts found.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

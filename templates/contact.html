@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us{% endblock %}
+
+{% block content %}
+<!-- Contact Us Section -->
+<section class="contact-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Contact Us</h2>
+        <p class="text-center mb-5">We'd love to hear from you. Reach out to us for any inquiries or support requests.</p>
+
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Email Us</h4>
+                <p>For general inquiries, please email us at <a href="mailto:support@securelink360.com">support@securelink360.com</a>.</p>
+            </div>
+            <div class="col-md-6">
+                <h4>Call Us</h4>
+                <p>Reach us at our support number: <a href="tel:+1234567890">+1 (234) 567-890</a>.</p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <h4>Contact Form</h4>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <input type="text" class="form-control" placeholder="Your Name" required>
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" class="form-control" placeholder="Your Email" required>
+                    </div>
+                    <div class="mb-3">
+                        <textarea class="form-control" placeholder="Your Message" rows="4" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer Section -->
+<footer class="footer bg-dark text-white py-4">
+    <div class="container text-center">
+        <p>&copy; 2025 SecureLink 360. All Rights Reserved.</p>
+    </div>
+</footer>
+
+{% endblock %}

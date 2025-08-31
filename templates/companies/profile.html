@@ -1,0 +1,40 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>My Profile</h2>
+    <div class="card p-4 shadow-sm">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <!-- Avatar -->
+            <div class="mb-3 text-center">
+                <img src="{{ user.profile.avatar.url|default:'/static/img/default-avatar.png' }}" 
+                     alt="Avatar" class="rounded-circle mb-2" width="120" height="120">
+                <input type="file" name="avatar" class="form-control mt-2">
+            </div>
+
+            <!-- Profile fields -->
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" value="{{ user.get_full_name }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" name="email" class="form-control" value="{{ user.email }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" placeholder="••••••••">
+            </div>
+
+            <!-- Preferences -->
+            <h5 class="mt-4">Preferences</h5>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="notify_email" checked>
+                <label class="form-check-label">Email Notifications</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Save Changes</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

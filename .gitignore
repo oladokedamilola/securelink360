@@ -1,0 +1,80 @@
+# ===============================
+# Python
+# ===============================
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# ===============================
+# Django
+# ===============================
+*.log
+*.pot
+*.sqlite3
+db.sqlite3
+/staticfiles/
+/media/
+/coverage/
+/htmlcov/
+/*.mo
+
+# Django migrations
+*/migrations/*.pyc
+*/migrations/*.py[cod]
+*/migrations/__pycache__/
+
+# ===============================
+# Environment variables
+# ===============================
+.env
+.env.local
+.env.*.local
+
+# ===============================
+# IDEs and editors
+# ===============================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===============================
+# Temporary files
+# ===============================
+*.swp
+*~
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# ===============================
+# Testing / Coverage
+# ===============================
+.coverage
+.coverage.*
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# ===============================
+# Pytest
+# ===============================
+.cache/
+.pytest_cache/
+
+
+# Ignore compiled files in migrations
+*/migrations/*.pyc
+*/migrations/__pycache__/
+*/migrations/*.pyo

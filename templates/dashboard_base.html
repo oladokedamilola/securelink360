@@ -1,0 +1,86 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SecureLink360 Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body class="dark-mode">
+    <div class="dashboard-layout">
+
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>SecureLink360</h2>
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+            </div>
+            <nav class="sidebar-nav">
+
+                <!-- Always visible -->
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    🏠 Dashboard
+                </a>
+
+                <!-- Admin Only -->
+                {% if request.user.role == "admin" %}
+                    <a href="{% url 'company_profile' %}" class="nav-link">🏢 Company Profile</a>
+                    <a href="{% url 'team_management' %}" class="nav-link">👥 Team Management</a>
+                    <a href="{% url 'billing' %}" class="nav-link">💳 License & Billing</a>
+                    <a href="{% url 'security_settings' %}" class="nav-link">🔒 Security</a>
+                    <a href="{% url 'reports' %}" class="nav-link">📊 Reports</a>
+                {% endif %}
+
+                <!-- Manager -->
+                {% if request.user.role == "manager" %}
+                    <a href="{% url 'team_management' %}" class="nav-link">👥 My Team</a>
+                    <a href="{% url 'reports' %}" class="nav-link">📊 Reports</a>
+                    <a href="{% url 'security_settings' %}" class="nav-link">🔒 Team Security</a>
+                {% endif %}
+
+                <!-- Viewer -->
+                {% if request.user.role == "viewer" %}
+                    <a href="{% url 'reports' %}" class="nav-link">📊 Reports</a>
+                {% endif %}
+
+                <!-- Employee -->
+                {% if request.user.role == "employee" %}
+                    <a href="{% url 'my_profile' %}" class="nav-link">🙍 My Profile</a>
+                    <a href="{% url 'security_settings' %}" class="nav-link">🔒 My Security</a>
+                {% endif %}
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            
+            <!-- Top Bar -->
+            <header class="topbar">
+                <button class="sidebar-toggle mobile-only" onclick="toggleSidebar()">☰</button>
+                <div class="topbar-right">
+                    <span class="company-name">{{ request.user.company.name }}</span>
+                    <div class="user-menu">
+                        {{ request.user.email }}
+                        <a href="{% url 'account_logout' %}">Logout</a>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="content">
+                {% block content %}{% endblock %}
+            </main>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("collapsed");
+        }
+    </script>
+</body>
+</html>

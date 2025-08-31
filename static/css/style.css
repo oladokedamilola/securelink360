@@ -1,0 +1,316 @@
+/* ================= Base styles for both light and dark modes ================= */
+:root {
+    /* Core Brand Colors */
+    --primary-color: #0A0A0A;
+    /* Rich Black */
+    --secondary-color: #00BCD4;
+    /* Deep Cyan (brand highlight) */
+    --tertiary-color: #1F1F1F;
+    /* Dark Gray */
+    --text-color: #FFFFFF;
+    /* White */
+    --text-muted: #B0BEC5;
+    /* Muted Gray */
+
+    /* Action / States */
+    --button-color: #0097A7;
+    /* Teal Cyan */
+    --button-hover: #00E5FF;
+    /* Bright Cyan Hover */
+    --success-color: #4CAF50;
+    /* Green for success states */
+    --warning-color: #FF6B35;
+    /* Orange-Red for alerts/warnings */
+    --info-color: #00BCD4;
+    /* Cyan for info highlights */
+
+    /* Neutrals */
+    --background-light: #F4F6F8;
+    /* Neutral light gray for cards/sections */
+}
+
+/* ================= General Styles ================= */
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* ================= Navbar Styling ================= */
+.navbar {
+    min-height: 75px;
+    padding: 1rem 1.5rem;
+}
+
+/* Brand Name */
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+    color: var(--secondary-color) !important;
+    letter-spacing: 0.5px;
+}
+
+/* Nav Links */
+.navbar .nav-link {
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.6rem 1rem;
+    transition: color 0.3s ease, border-bottom 0.3s ease;
+}
+
+.navbar .nav-link.active {
+    font-weight: bold;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+/* ================= Light Mode ================= */
+body.light-mode {
+    background-color: #ffffff;
+    color: var(--primary-color);
+}
+
+body.light-mode .navbar-light {
+    background-color: #ffffff;
+    color: var(--primary-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+body.light-mode .navbar-light .nav-link {
+    color: var(--primary-color);
+}
+
+body.light-mode .navbar-light .nav-link:hover {
+    color: var(--secondary-color);
+}
+
+body.light-mode .sidebar {
+    background-color: var(--background-light);
+    color: var(--primary-color);
+}
+
+body.light-mode .sidebar .nav-link {
+    color: var(--primary-color);
+}
+
+body.light-mode .sidebar .nav-link:hover {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    transform: scale(1.05);
+}
+
+/* ================= Dark Mode ================= */
+body.dark-mode {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+body.dark-mode .navbar-light {
+    background-color: var(--tertiary-color);
+    color: var(--text-color);
+    box-shadow: 0 4px 8px rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .navbar-light .nav-link {
+    color: var(--text-color);
+}
+
+body.dark-mode .navbar-light .nav-link:hover {
+    color: var(--secondary-color);
+}
+
+body.dark-mode .sidebar {
+    background-color: var(--tertiary-color);
+    color: var(--text-color);
+}
+
+body.dark-mode .sidebar .nav-link {
+    color: var(--text-color);
+}
+
+body.dark-mode .sidebar .nav-link:hover {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+    transform: scale(1.05);
+}
+
+/* ================= Buttons ================= */
+.btn-primary {
+    background-color: var(--button-color);
+    border-color: var(--button-color);
+    color: var(--text-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--button-hover);
+    border-color: var(--button-hover);
+    color: var(--primary-color);
+}
+
+/* State-based buttons */
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+    color: #fff;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    border-color: var(--warning-color);
+    color: #fff;
+}
+
+.btn-primary:disabled,
+.btn-success:disabled,
+.btn-warning:disabled {
+    background-color: #ccc;
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+
+/* ================= Lists ================= */
+.list-group-item {
+    border: 1px solid #ccc;
+}
+
+.list-group-item:hover {
+    background-color: var(--secondary-color);
+    color: var(--primary-color);
+}
+
+
+/* Increase icon size in Features Section */
+.feature-icon {
+    font-size: 3rem;
+    /* Increase size to 3 times the base font size */
+    color: var(--secondary-color);
+    /* Optional: Set the icon color to match your theme */
+    transition: transform 0.3s ease;
+    /* Smooth transition for hover effects */
+}
+
+.feature-icon:hover {
+    transform: scale(1.1);
+    /* Slight zoom on hover for interactivity */
+}
+
+
+/* Increase icon size in How It Works Section */
+.step-icon {
+    font-size: 3rem;
+    /* Increase size to 3 times the base font size */
+    color: var(--secondary-color);
+    /* Optional: Set the icon color to match your theme */
+    transition: transform 0.3s ease;
+    /* Smooth transition for hover effects */
+}
+
+.step-icon:hover {
+    transform: scale(1.1);
+    /* Slight zoom on hover for interactivity */
+}
+
+
+
+/* Sidebar toggle button visibility for smaller screens */
+#sidebar {
+    transition: all 0.3s ease-in-out;
+    height: 100vh;
+}
+
+@media (max-width: 768px) {
+    #sidebar {
+        display: none;
+    }
+
+    .sidebar-toggle-btn {
+        display: block;
+    }
+}
+
+.sidebar-content {
+    padding: 10px;
+}
+
+/* Adjust sidebar width for larger screens */
+@media (min-width: 992px) {
+    #sidebar {
+        width: 20%;
+        position: fixed;
+        height: 100vh;
+    }
+}
+
+/* Card Hover Effects */
+.card {
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+    /* Slight hover lift */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    /* Elevated effect */
+}
+
+/* Sticky Navbar */
+.navbar-light {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Loading Spinner */
+.spinner {
+    width: 30px;
+    height: 30px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--secondary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Typography */
+h1,
+h2,
+h3 {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+h1 {
+    font-size: 2.5rem;
+    /* Larger font for top headers */
+}
+
+h2 {
+    font-size: 2rem;
+}
+
+h3 {
+    font-size: 1.5rem;
+}
+
+/* Accessibility Improvements */
+body.dark-mode {
+    color: #e0e0e0;
+    /* Lighter text for better contrast */
+}
+
+body.light-mode {
+    color: #333;
+    /* Darker text for light mode */
+}

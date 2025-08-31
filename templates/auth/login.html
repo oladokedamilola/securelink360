@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-gray-900 to-black">
+    <div class="bg-white dark:bg-tertiary-color shadow-lg rounded-2xl p-8 w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-secondary-color">
+            SecureLink360 Login
+        </h2>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-4">
+                <label for="id_username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+
+            <div class="mb-4">
+                <label for="id_password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </div>
+
+            <button type="submit"
+                class="w-full py-2 px-4 bg-button-color text-white rounded-lg shadow-md hover:bg-button-hover hover:text-primary-color transition duration-300">
+                Login
+            </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            Don’t have an account?
+            <a href="{% url 'register' %}" class="text-secondary-color hover:underline">Register here</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

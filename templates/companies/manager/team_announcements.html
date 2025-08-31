@@ -1,0 +1,84 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container">
+  <h2>Team Announcements & Tasks</h2>
+
+  <!-- Post Announcement -->
+  <div class="card p-3 mb-4 shadow-sm">
+    <h5>Post Announcement</h5>
+    <form method="post">
+      {% csrf_token %}
+      <textarea name="message" class="form-control mb-2" rows="2" placeholder="Write announcement..."></textarea>
+      <button type="submit" name="announcement_submit" class="btn btn-info">Post</button>
+    </form>
+  </div>
+
+  <!-- Assign Task -->
+  <div class="card p-3 mb-4 shadow-sm">
+    <h5>Assign Task</h5>
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-2">
+        <label class="form-label">Assign to</label>
+        <select name="assigned_to" class="form-select">
+          {% for member in team_members %}
+            <option value="{{ member.id }}">{{ member.get_full_name }} ({{ member.email }})</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Description</label>
+        <textarea name="description" class="form-control" rows="2"></textarea>
+      </div>
+      <div class="mb-2">
+        <label class="form-label">Due Date</label>
+        <input type="date" name="due_date" class="form-control">
+      </div>
+      <button type="submit" name="task_submit" class="btn btn-success">Assign Task</button>
+    </form>
+  </div>
+
+  <!-- List Announcements -->
+  <div class="card p-3 mb-4 shadow-sm">
+    <h5>Recent Announcements</h5>
+    <ul class="list-group">
+      {% for ann in announcements %}
+        <li class="list-group-item">
+          <strong>{{ ann.manager.get_full_name }}</strong>: {{ ann.message }}
+          <small class="text-muted float-end">{{ ann.created_at|date:"M d, Y H:i" }}</small>
+        </li>
+      {% empty %}
+        <li class="list-group-item text-muted">No announcements yet.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+  <!-- List Tasks -->
+  <div class="card p-3 shadow-sm">
+    <h5>Tasks Assigned</h5>
+    <table class="table table-striped">
+      <thead>
+        <tr><th>To</th><th>Description</th><th>Due</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+          <tr>
+            <td>{{ task.assigned_to.get_full_name }}</td>
+            <td>{{ task.description }}</td>
+            <td>{{ task.due_date|date:"M d, Y" }}</td>
+            <td>
+              {% if task.completed %}
+                <span class="badge bg-success">Completed</span>
+              {% else %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="4" class="text-muted">No tasks yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

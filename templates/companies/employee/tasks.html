@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>My Tasks</h2>
+
+    <div class="list-group">
+        {% for task in tasks %}
+        <div class="list-group-item d-flex justify-content-between align-items-center {% if task.completed %}list-group-item-success{% endif %}">
+            <div>
+                <strong>{{ task.title }}</strong>
+                <p class="mb-0 text-muted">{{ task.description }}</p>
+                <small>Due: {{ task.due_date }}</small>
+            </div>
+            <form method="POST" action="{% url 'complete_task' task.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if task.completed %}btn-success{% else %}btn-primary{% endif %}">
+                    {% if task.completed %}✔ Done{% else %}Mark Done{% endif %}
+                </button>
+            </form>
+        </div>
+        {% empty %}
+        <p>No tasks assigned.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

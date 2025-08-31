@@ -1,0 +1,15 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container">
+  <h2>License Management</h2>
+  {% if license %}
+    <p><strong>Plan:</strong> {{ license.plan }}</p>
+    <p><strong>Seats:</strong> {{ license.seats }}</p>
+    <p><strong>Expiry Date:</strong> {{ license.expiry_date }}</p>
+    <a href="#" class="btn btn-primary">Upgrade</a>
+    <a href="#" class="btn btn-success">Renew</a>
+  {% else %}
+    <p>No active license found.</p>
+  {% endif %}
+</div>
+{% endblock %}

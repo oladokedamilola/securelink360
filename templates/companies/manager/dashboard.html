@@ -1,0 +1,73 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Manager Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+
+    <!-- Greeting -->
+    <div class="onboarding-widget">
+        <h3>👋 Welcome back, {{ user.first_name }}!</h3>
+        <p>Here’s what’s happening with your team today.</p>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+
+        <!-- Team Overview -->
+        <div class="card shadow-sm">
+            <h4>👥 Team Members</h4>
+            <ul>
+                {% for member in team_members %}
+                    <li>
+                        {{ member.name }}
+                        {% if member.onboarding_complete %}
+                            ✅ Onboarded
+                        {% else %}
+                            ⏳ In Progress
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li>No team members assigned yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Team Devices -->
+        <div class="card shadow-sm">
+            <h4>💻 Team Devices</h4>
+            <ul>
+                {% for device in team_devices %}
+                    <li>{{ device.user.name }} - {{ device.name }} ({{ device.ip_address }})</li>
+                {% empty %}
+                    <li>No devices registered for your team yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Team Alerts -->
+        <div class="card shadow-sm">
+            <h4>⚠️ Team Alerts</h4>
+            <ul>
+                {% for alert in team_alerts %}
+                    <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.user.name }} - {{ alert.message }}</li>
+                {% empty %}
+                    <li>No alerts for your team 🎉</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Announcements -->
+        <div class="card shadow-sm">
+            <h4>📢 Announcements</h4>
+            <ul>
+                {% for note in announcements %}
+                    <li>{{ note.message }} <small>({{ note.date|date:"M d" }})</small></li>
+                {% empty %}
+                    <li>No announcements at this time.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

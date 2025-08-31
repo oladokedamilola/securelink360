@@ -1,0 +1,295 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<style>
+    /* Hero Section Custom Height */
+.hero-section .carousel-item img {
+    height: 90vh; /* adjust to 50vh, 60vh, etc. depending on preference */
+    object-fit: cover; /* ensures the image covers without distortion */
+}
+
+/* Center the buttons better after height reduction */
+.hero-section .carousel-caption {
+    bottom: 20%; /* move caption slightly upward */
+}
+</style>
+<!-- Hero Section -->
+<section class="hero-section">
+    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="{% static 'images/hero1.jpeg' %}" class="d-block w-100" alt="Network Protection">
+                <div class="carousel-caption d-none d-md-block">
+                    <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'about' %}" class="btn btn-outline-light">Learn More</a>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'images/hero2.jpeg' %}" class="d-block w-100" alt="Intruder Alerts">
+                <div class="carousel-caption d-none d-md-block">
+                    <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'about' %}" class="btn btn-outline-light">Learn More</a>
+                </div>
+            </div>
+            <div class="carousel-item">
+                <img src="{% static 'images/hero3.jpeg' %}" class="d-block w-100" alt="Real-Time Monitoring">
+                <div class="carousel-caption d-none d-md-block">
+                    <a href="{% url 'register' %}" class="btn btn-primary">Get Started</a>
+                    <a href="{% url 'about' %}" class="btn btn-outline-light">Learn More</a>
+                </div>
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">How It Works</h2>
+        <div class="row text-center">
+            <div class="col-md-3">
+                <div class="step-card">
+                    <i class="bi bi-hdd-stack step-icon"></i>
+                    <h4>Create Your Network</h4>
+                    <p>Admins set up the company network.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <i class="bi bi-person-check step-icon"></i>
+                    <h4>Register Employees</h4>
+                    <p>Employees join the network with a unique ID.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <i class="bi bi-eye step-icon"></i>
+                    <h4>Monitor Network</h4>
+                    <p>Admins track real-time network activity and devices.</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="step-card">
+                    <i class="bi bi-shield-lock step-icon"></i>
+                    <h4>Intruder Detection</h4>
+                    <p>Admins receive alerts when unauthorized devices try to connect.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5" style="background-image: url('{% static 'images/features-bg.jpg' %}'); background-size: cover; background-position: center;">
+    <div class="container">
+        <h2 class="text-center text-white mb-4">Key Features</h2>
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-graph-up feature-icon"></i>
+                    <h4>Real-Time Monitoring</h4>
+                    <p>Instant detection of devices trying to connect to the network.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-file-lock feature-icon"></i>
+                    <h4>Admin Dashboard</h4>
+                    <p>Manage network activity and devices seamlessly from the dashboard.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-person-lock feature-icon"></i>
+                    <h4>Employee Management</h4>
+                    <p>Assign unique IDs to employees for secure network access.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="benefits-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Business & Employee Benefits</h2>
+        <div class="row">
+            <div class="col-md-6">
+                <h5>For Businesses</h5>
+                <ul>
+                    <li>Improved security with real-time alerts</li>
+                    <li>Seamless employee integration</li>
+                    <li>Scalable from small businesses to large enterprises</li>
+                    <li>Easy monitoring and reporting</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h5>For Employees</h5>
+                <ul>
+                    <li>Easy access to the company’s network</li>
+                    <li>Safe and secure login with unique IDs</li>
+                    <li>Simple and straightforward setup</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Use Cases Section -->
+<section class="use-cases py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Use Cases</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Small Business</h4>
+                <p>Quick setup for a small office network with basic employee management.</p>
+            </div>
+            <div class="col-md-4">
+                <h4>Medium Enterprise</h4>
+                <p>Real-time monitoring and intruder detection with user role management.</p>
+            </div>
+            <div class="col-md-4">
+                <h4>Large Organization</h4>
+                <p>Advanced security and analytics, multi-department support for large teams.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Security Features Section -->
+<section class="security-features py-5" style="background-color: #f8f9fa;">
+    <div class="container">
+        <h2 class="text-center mb-4">Security Features</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-check-circle feature-icon"></i>
+                    <h4>Device Whitelisting</h4>
+                    <p>Only registered devices can connect to your network.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-shield-lock feature-icon"></i>
+                    <h4>Access Control</h4>
+                    <p>Define and manage access levels for users and admins.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-card">
+                    <i class="bi bi-clipboard feature-icon"></i>
+                    <h4>Activity Log</h4>
+                    <p>Track network activity and security events in real-time.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonials-section bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">What Our Users Say</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"SecureLink 360 has transformed the way we monitor our network. We feel safer knowing we can detect threats instantly."</p>
+                    <h5>John Doe</h5>
+                    <small>Network Administrator, XYZ Corp.</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"With real-time alerts, our team can respond to unauthorized access immediately. The system is seamless and easy to use."</p>
+                    <h5>Jane Smith</h5>
+                    <small>IT Manager, ABC Ltd.</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <p>"I highly recommend SecureLink 360 for any business. It’s easy to set up and incredibly reliable."</p>
+                    <h5>Michael Brown</h5>
+                    <small>CEO, Tech Solutions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="pricing-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Pricing Plans</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <h4>Basic</h4>
+                <p>For small businesses, limited features (network setup, device registration).</p>
+                <a href="{% url 'register' %}" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <div class="col-md-4">
+                <h4>Pro</h4>
+                <p>For mid-sized businesses, includes monitoring and alerts.</p>
+                <a href="{% url 'register' %}" class="btn btn-primary">Start Free Trial</a>
+            </div>
+            <div class="col-md-4">
+                <h4>Enterprise</h4>
+                <p>For large organizations, advanced features like custom reporting and analytics.</p>
+                <a href="{% url 'register' %}" class="btn btn-primary">Start Free Trial</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section text-center py-5" style="background: linear-gradient(to right, #00BCD4, #00FFFF);">
+    <div class="container">
+        <h2 class="text-white">Ready to Secure Your Network?</h2>
+        <p class="text-white">Start protecting your data and devices with SecureLink 360 today.</p>
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg">Get Started</a>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="faq-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Frequently Asked Questions</h2>
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                        How do employees get their unique ID?
+                    </button>
+                </h2>
+                <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Employees will receive a unique ID when they register with the company network.
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingTwo">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        Can I customize the security settings for my company?
+                    </button>
+                </h2>
+                <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        Yes, admins can customize access controls, device whitelisting, and other security features for their network.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

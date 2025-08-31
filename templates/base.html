@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureLink 360</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{% static 'css/style.css' %}" rel="stylesheet">
+    <link rel="shortcut icon" href="{% static 'images/fav-icon.png' %}" type="image/x-icon">
+    <style>
+        /* === Preloader Styles === */
+        #preloader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000 url("{% static 'images/securelink.jpeg' %}") no-repeat center;
+            background-size: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .loader {
+            border: 4px solid rgba(255,255,255,0.2);
+            border-left-color: var(--button-color);
+            border-radius: 50%;
+            width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* === Flash Message Styles === */
+        .flash-message {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            min-width: 300px;
+            max-width: 600px;
+            background: #fff;
+            border-left: 6px solid var(--button-color);
+            color: #333;
+            font-size: 0.95rem;
+            border-radius: 10px;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1055;
+            opacity: 0;
+            transition: all 0.6s ease-in-out;
+        }
+        .flash-message.show {
+            top: 30px;
+            opacity: 1;
+        }
+        .flash-message .btn-close {
+            float: right;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body class="light-mode">
+
+    <!-- === Preloader === -->
+    <div id="preloader">
+        <div class="loader"></div>
+    </div>
+
+    <!-- === Navbar === -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-secondary-color" href="{% url 'home' %}">
+                SecureLink 360
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="{% url 'about' %}">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'pricing' %}">Pricing</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'contact' %}">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'privacy_policy' %}">Privacy Policy</a></li>
+
+                    {% if user.is_authenticated %}
+                        {% if not user.is_superuser %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a></li>
+                        {% endif %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'logout' %}">Logout</a></li>
+                        {% if user.is_superuser %}
+                            <li class="nav-item"><a class="nav-link" href="{% url 'admin:index' %}">Admin Panel</a></li>
+                        {% endif %}
+                    {% else %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Register</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- === Flash Messages === -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="flash-message alert alert-{{ message.tags }}">
+                <span>{{ message }}</span>
+                <button type="button" class="btn-close" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- === Content === -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- === Footer === -->
+    {% block footer %}
+    <footer class="footer bg-dark text-white py-4 mt-5">
+        <div class="container">
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <h5>SecureLink 360</h5>
+                    <p>Your trusted network security solution. Protect your devices and data in real-time.</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>Product</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'about' %}" class="text-white">About Us</a></li>
+                        <li><a href="{% url 'pricing' %}" class="text-white">Pricing</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-white">Contact</a></li>
+                        <li><a href="{% url 'privacy_policy' %}" class="text-white">Privacy Policy</a></li>
+                        <li><a href="#" class="text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Support</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Help Center</a></li>
+                        <li><a href="#" class="text-white">FAQ</a></li>
+                        <li><a href="{% url 'contact' %}" class="text-white">Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>Follow Us</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="#" class="text-white">Facebook</a></li>
+                        <li><a href="#" class="text-white">Twitter</a></li>
+                        <li><a href="#" class="text-white">LinkedIn</a></li>
+                        <li><a href="#" class="text-white">Instagram</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col text-center">
+                    <p>&copy; 2025 SecureLink 360. All Rights Reserved.</p>
+                    <p>Made with <i class="bi bi-heart-fill text-danger"></i> by the SecureLink team.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock footer %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'script.js' %}"></script>
+    <script>
+        // === Preloader Fade Out ===
+        window.addEventListener("load", () => {
+            const preloader = document.getElementById("preloader");
+            preloader.style.opacity = "0";
+            setTimeout(() => preloader.style.display = "none", 500);
+        });
+
+        // === Flash Messages Slide + Auto-Dismiss ===
+        document.querySelectorAll(".flash-message").forEach((msg) => {
+            setTimeout(() => msg.classList.add("show"), 200); // slide in
+            setTimeout(() => {
+                msg.classList.remove("show"); // slide out
+                setTimeout(() => msg.remove(), 600);
+            }, 7000);
+            msg.querySelector(".btn-close").addEventListener("click", () => {
+                msg.classList.remove("show");
+                setTimeout(() => msg.remove(), 600);
+            });
+        });
+    </script>
+</body>
+</html>

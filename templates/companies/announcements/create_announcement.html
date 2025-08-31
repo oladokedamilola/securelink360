@@ -1,0 +1,11 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container">
+  <h2>Create Company-wide Announcement</h2>
+  <form method="post" class="card p-3 shadow-sm">
+    {% csrf_token %}
+    <textarea name="message" class="form-control mb-3" rows="3" placeholder="Enter announcement..."></textarea>
+    <button type="submit" class="btn btn-primary">Post</button>
+  </form>
+</div>
+{% endblock %}

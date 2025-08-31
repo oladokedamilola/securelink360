@@ -1,0 +1,78 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container">
+  <h2>User Management</h2>
+
+  <!-- Invite New User -->
+  <a href="{% url 'invite_user' %}" class="btn btn-primary mb-3">➕ Invite New User</a>
+
+  <!-- Active Users -->
+  <div class="card mb-4 shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">✅ Active Users</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+            <tr>
+              <td>{{ u.email }}</td>
+              <td>{{ u.get_role_display }}</td>
+              <td><span class="badge bg-success">Active</span></td>
+              <td>
+                <a href="{% url 'edit_user' u.id %}" class="btn btn-sm btn-warning">Edit</a>
+                <a href="{% url 'deactivate_user' u.id %}" class="btn btn-sm btn-danger">Deactivate</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="4" class="text-muted">No users found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pending Invites -->
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h5 class="mb-0">⏳ Pending Invitations</h5>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead>
+          <tr><th>Email</th><th>Invited By</th><th>Sent At</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for invite in invites %}
+            <tr>
+              <td>{{ invite.email }}</td>
+              <td>{{ invite.invited_by.email }}</td>
+              <td>{{ invite.created_at|date:"M d, Y H:i" }}</td>
+              <td>
+                {% if invite.is_expired %}
+                  <span class="badge bg-danger">Expired</span>
+                {% else %}
+                  <span class="badge bg-warning">Pending</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if invite.is_expired %}
+                  <a href="{% url 'resend_invite' invite.id %}" class="btn btn-sm btn-primary">Resend</a>
+                {% else %}
+                  <a href="{% url 'revoke_invite' invite.id %}" class="btn btn-sm btn-danger">Revoke</a>
+                {% endif %}
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="5" class="text-muted">No pending invitations.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
