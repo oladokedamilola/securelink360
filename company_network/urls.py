@@ -16,11 +16,11 @@ urlpatterns = [
     path('pricing/', views.pricing, name='pricing'),
     path('contact/', views.contact, name='contact'),
     path('privacy-policy/', views.privacy_policy, name='privacy_policy'),
-    path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
-    path('dashboard/', views.dashboard, name='dashboard'),
-    path('profile/', views.profile, name='profile'),
-    path('settings/', views.settings, name='settings'),
-    path('reports/', views.reports, name='reports'),
+    # path('terms-of-service/', views.terms_of_service, name='terms_of_service'),
+    # path('dashboard/', views.dashboard, name='dashboard'),
+    # path('profile/', views.profile, name='profile'),
+    # path('settings/', views.settings, name='settings'),
+    # path('reports/', views.reports, name='reports'),
     
     # Admin Pages
     path("admin/license/", views.admin_license, name="admin_license"),

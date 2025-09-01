@@ -9,7 +9,7 @@ class CompanyAdmin(admin.ModelAdmin):
 @admin.register(License)
 class LicenseAdmin(admin.ModelAdmin):
     list_display = ("company", "plan", "seats", "expiry_date", "is_active")
-    readonly_fields = ("key",)
+    # readonly_fields = ("key",)
 
     def save_model(self, request, obj, form, change):
         if not obj.key:

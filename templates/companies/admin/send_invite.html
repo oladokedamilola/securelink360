@@ -1,31 +1,58 @@
 {% extends "dashboard_base.html" %}
 {% block content %}
-<div class="container mt-4">
-  <div class="card shadow-sm p-4">
-    <h2 class="mb-4">Invite New User</h2>
-    <form method="post" novalidate>
-      {% csrf_token %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg rounded-4 border-0">
+        <div class="card-body p-4">
+          <h2 class="h4 fw-bold mb-4 text-center text-primary">
+            <i class="fas fa-user-plus me-2"></i>Invite New User
+          </h2>
 
-      <div class="mb-3">
-        <label for="id_email" class="form-label">User Email</label>
-        {{ form.email }}
-        {% if form.email.errors %}
-          <div class="text-danger small">{{ form.email.errors }}</div>
-        {% endif %}
+          <form method="post" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="id_email" class="form-label">User Email</label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.email.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Role -->
+            <div class="mb-3">
+              <label for="id_role" class="form-label">Assign Role</label>
+              {{ form.role }}
+              {% if form.role.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ form.role.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm">
+              <i class="fas fa-paper-plane me-2"></i> Send Invitation
+            </button>
+          </form>
+        </div>
       </div>
-
-      <div class="mb-3">
-        <label for="id_role" class="form-label">Assign Role</label>
-        {{ form.role }}
-        {% if form.role.errors %}
-          <div class="text-danger small">{{ form.role.errors }}</div>
-        {% endif %}
-      </div>
-
-      <button type="submit" class="btn btn-primary">
-        <i class="fas fa-paper-plane me-2"></i> Send Invite
-      </button>
-    </form>
+    </div>
   </div>
 </div>
 {% endblock %}
+
+
+{% block footer %}
+<!-- Footer Section -->
+<footer class="footer bg-dark text-white py-4">
+  <div class="container text-center">
+    <p>&copy; 2025 SecureLink 360. All Rights Reserved.</p>
+  </div>
+</footer>
+{% endblock footer %}

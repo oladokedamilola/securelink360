@@ -32,7 +32,7 @@ def register(request):
 
     else:
         form = AdminRegistrationForm()
-    return render(request, "accounts/register.html", {"form": form})
+    return render(request, "auth/register.html", {"form": form})
 
 
 # accounts/views.py

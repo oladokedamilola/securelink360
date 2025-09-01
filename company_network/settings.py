@@ -9,7 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-t19a(5hf1x4c(zt9qg2g-ro*3@pzw(tjn&lx=gvdj88b1%ls@t'
-
+FERNET_KEY = 'afi9G2x6rZY1jp50EXoBFnJ0_Vuxza5RAoe-AeC0t0o='
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -46,7 +46,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 MIDDLEWARE += [
-    "accounts.middleware.CompanyLicenseMiddleware",
+    "accounts.middleware.company_license.CompanyLicenseMiddleware",
     "accounts.middleware.company_scope.CompanyAccessMiddleware",
 ]
 

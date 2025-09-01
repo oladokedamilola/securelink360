@@ -13,7 +13,9 @@ class Company(models.Model):
     def __str__(self):
         return self.name
 
-fernet = Fernet(settings.SECRET_KEY[:32].encode("utf-8").ljust(32, b"0"))
+from django.conf import settings
+
+fernet = Fernet(settings.FERNET_KEY)
 
 class License(models.Model):
     PLAN_CHOICES = [
