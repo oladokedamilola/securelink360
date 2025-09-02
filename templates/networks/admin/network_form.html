@@ -1,0 +1,33 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header">
+      <h4 class="mb-0">
+        {% if edit %} Edit Network {% else %} Create Network {% endif %}
+      </h4>
+    </div>
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="form-label">Name</label>
+          {{ form.name }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Description</label>
+          {{ form.description }}
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Visibility</label>
+          {{ form.visibility }}
+        </div>
+        <button type="submit" class="btn btn-primary">
+          {% if edit %} Save Changes {% else %} Create Network {% endif %}
+        </button>
+        <a href="{% url 'admin_company_networks' %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

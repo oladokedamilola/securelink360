@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 from accounts import views as account_views
+
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
@@ -9,6 +11,11 @@ urlpatterns = [
     path('devices/', include('devices.urls')),
     path("company/", include("companies.urls")),
     path('alerts/', include('alerts.urls')),
+    path("n/", include("networks.urls_admin")),  # admin-specific
+    path("n/", include("networks.urls_manager")),  # manager-specific
+    path("n/", include("networks.urls_employee")),  # employee-specific
+    path("n/live/", include("networks.urls_visual")),  # live network view
+    path("requests/", include("networks.urls_requests")),  # join requests
 
 
     path('', views.home, name='home'),

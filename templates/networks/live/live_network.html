@@ -1,0 +1,170 @@
+{% extends "user_base.html" %}
+{% block title %}Live Network — {{ network.name }}{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <h2 class="mb-3">Live Network — {{ network.name }}</h2>
+
+  <audio id="notifSound" preload="auto">
+    <source src="{% static 'audio/alert.mp3' %}" type="audio/mpeg">
+  </audio>
+
+  <div id="graph" style="height: 70vh; background: #0f1115; border-radius: 12px;"></div>
+
+  <div class="mt-3">
+    <button id="ackBtn" class="btn btn-success btn-sm d-none">Acknowledge Intruder</button>
+    <button id="escBtn" class="btn btn-warning btn-sm d-none">Escalate</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const networkId = {{ network.id }};
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/network/${networkId}/`);
+  const notifSound = document.getElementById("notifSound");
+
+  // --- D3 Graph Setup ---
+  // Minimal example; swap in Cytoscape if you prefer.
+  let nodes = [];
+  let links = [];
+  let intruderSelectedId = null;
+
+  const width = document.getElementById("graph").clientWidth;
+  const height = document.getElementById("graph").clientHeight;
+
+  const svg = d3.select("#graph").append("svg")
+      .attr("width", "100%")
+      .attr("height", "100%");
+
+  const linkGroup = svg.append("g");
+  const nodeGroup = svg.append("g");
+
+  const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).distance(120).id(d => d.id))
+      .force("charge", d3.forceManyBody().strength(-180))
+      .force("center", d3.forceCenter(width/2, height/2));
+
+  function redraw(){
+    const link = linkGroup.selectAll("line").data(links, d => `${d.source.id}-${d.target.id}`);
+    link.exit().remove();
+    link.enter().append("line").attr("stroke", "#444").attr("stroke-width", 1.2);
+
+    const node = nodeGroup.selectAll("g").data(nodes, d => d.id);
+    node.exit().remove();
+    const nodeEnter = node.enter().append("g").call(drag(simulation));
+    nodeEnter.append("circle")
+      .attr("r", d => d.type === "intruder" ? 12 : 10)
+      .attr("fill", d => colorFor(d.type))
+      .attr("class", d => d.type === "intruder" ? "intruder-node" : "")
+      .on("click", d => onNodeClick(d));
+    nodeEnter.append("title").text(d => d.label);
+    nodeEnter.append("text")
+      .text(d => d.short || d.label)
+      .attr("x", 14).attr("y", 4)
+      .attr("fill", "#9fb3c8").style("font-size", "12px");
+
+    simulation.nodes(nodes).on("tick", () => {
+      nodeGroup.selectAll("g").attr("transform", d => `translate(${d.x},${d.y})`);
+      linkGroup.selectAll("line")
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+    });
+    simulation.force("link").links(links);
+    simulation.alpha(0.8).restart();
+  }
+
+  function colorFor(type){
+    if (type === "user") return "#00BCD4";
+    if (type === "device") return "#8BC34A";
+    if (type === "intruder") return "#FF5252";
+    return "#9E9E9E";
+  }
+  function drag(sim){
+    function dragstarted(event, d){ if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
+    function dragged(event, d){ d.fx = event.x; d.fy = event.y; }
+    function dragended(event, d){ if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }
+    return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
+  }
+  function onNodeClick(datum){
+    if(datum.type === "intruder"){
+      intruderSelectedId = datum.attempt_id;
+      document.getElementById("ackBtn").classList.remove("d-none");
+      document.getElementById("escBtn").classList.remove("d-none");
+    }
+  }
+  function ensureNode(id, data){
+    const idx = nodes.findIndex(n => n.id === id);
+    if (idx === -1) nodes.push(data); else nodes[idx] = { ...nodes[idx], ...data };
+  }
+
+  socket.onmessage = (evt) => {
+    const msg = JSON.parse(evt.data);
+    if (msg.type === "snapshot"){
+      // Build initial graph
+      (msg.nodes.users || []).forEach(u => {
+        ensureNode(`user-${u.user_id}`, {id:`user-${u.user_id}`, type:"user", label:u.user__email, short:u.user__email.split("@")[0]});
+      });
+      (msg.nodes.devices || []).forEach(d => {
+        ensureNode(`device-${d.id}`, {id:`device-${d.id}`, type:"device", label:`${d.name} (${d.ip_address})`});
+      });
+      (msg.nodes.intruders || []).forEach(i => {
+        ensureNode(`intruder-${i.id}`, {id:`intruder-${i.id}`, type:"intruder", label:`${i.mac_address||'unknown'} / ${i.ip_address||''}`, attempt_id:i.id, blink:true});
+      });
+      redraw();
+    }
+
+    if (msg.type === "intruder_detected"){
+      // play sound + add node blinking
+      try { notifSound.currentTime = 0; notifSound.play(); } catch(e){}
+      ensureNode(`intruder-${msg.attempt_id}`, {
+        id:`intruder-${msg.attempt_id}`,
+        type:"intruder",
+        label:`${msg.mac_address||'unknown'} / ${msg.ip_address||''}`,
+        attempt_id: msg.attempt_id,
+        blink: true
+      });
+      redraw();
+      blinkIntruders();
+    }
+
+    if (msg.type === "membership_updated"){
+      ensureNode(`user-${msg.user_id}`, {id:`user-${msg.user_id}`, type:"user", label:`User ${msg.user_id}`});
+      redraw();
+    }
+
+    if (msg.type === "join_request_updated"){
+      // could add a “pending badge” on user node, or color pulse
+    }
+  };
+
+  socket.onclose = () => {
+    console.warn("WebSocket closed");
+  };
+
+  // Blink intruder nodes
+  function blinkIntruders(){
+    const nodesSel = svg.selectAll(".intruder-node");
+    nodesSel
+      .transition().duration(700).attr("opacity", 0.3)
+      .transition().duration(700).attr("opacity", 1.0)
+      .on("end", blinkIntruders);
+  }
+
+  // Actions
+  document.getElementById("ackBtn").addEventListener("click", ()=> {
+    if (!intruderSelectedId) return;
+    socket.send(JSON.stringify({action:"acknowledge_intruder", attempt_id: intruderSelectedId}));
+  });
+  document.getElementById("escBtn").addEventListener("click", ()=> {
+    if (!intruderSelectedId) return;
+    const note = prompt("Escalation note:");
+    socket.send(JSON.stringify({action:"escalate_intruder", attempt_id: intruderSelectedId, note}));
+  });
+})();
+</script>
+
+<!-- D3 -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+{% endblock %}

@@ -280,6 +280,35 @@
     });
   }, 7000);
 </script>
+<script>
+  const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const notificationsSocket = new WebSocket(
+      ws_scheme + '://' + window.location.host + "/ws/notifications/"
+  );
+
+  notificationsSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      const message = data.message;
+      const link = data.link || "#";
+
+      // Show in a notification dropdown or list
+      const list = document.getElementById("notifications-list");
+      if (list) {
+          const item = document.createElement("li");
+          item.innerHTML = `<a href="${link}">${message}</a>`;
+          list.prepend(item);
+      }
+
+      // Play notification sound
+      const audio = new Audio("/static/sounds/notification.mp3");
+      audio.play();
+
+      // Optionally show a toast popup
+      if (window.showToast) {
+          showToast(message);
+      }
+  };
+</script>
 
 {% block extra_js %}{% endblock %}
 </body>

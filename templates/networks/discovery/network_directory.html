@@ -1,0 +1,32 @@
+<!-- templates/networks/discovery/network_directory.html -->
+ {% extends "user_base.html" %}
+
+
+{% block title %}Company Networks{% endblock %}
+    
+{% block content %}
+<h2>Company Networks</h2>
+
+<form method="get">
+  <input type="text" name="q" value="{{ query }}" placeholder="Search networks...">
+  <button type="submit">Search</button>
+</form>
+
+<ul>
+  {% for n in networks %}
+    <li>
+      {{ n.name }}
+      {% if n.id in memberships %}
+        <span>✅ Joined</span>
+      {% elif n.id in pending_requests %}
+        <span>⏳ Pending</span>
+      {% else %}
+        <form method="post" action="{% url 'request_access' n.id %}">
+          {% csrf_token %}
+          <button type="submit">Request Access</button>
+        </form>
+      {% endif %}
+    </li>
+  {% endfor %}
+</ul>
+{% endblock %}

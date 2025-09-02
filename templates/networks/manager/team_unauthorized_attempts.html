@@ -1,0 +1,48 @@
+{% extends "dashboard_base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h3>Team Unauthorized Attempts</h3>
+
+  <div class="card shadow-sm mt-3">
+    <div class="card-body p-0">
+      <table class="table table-striped mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Network</th>
+            <th>User</th>
+            <th>IP</th>
+            <th>MAC</th>
+            <th>Reason</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for attempt in attempts %}
+          <tr>
+            <td>{{ attempt.network.name }}</td>
+            <td>
+              {% if attempt.user %}
+                {{ attempt.user.email }}
+                {% if attempt.user.network_memberships.filter(network=attempt.network).exists %}
+                  <span class="badge bg-warning">Employee</span>
+                {% endif %}
+              {% else %}
+                <span class="text-danger">Unknown</span>
+              {% endif %}
+            </td>
+            <td>{{ attempt.ip_address|default:"-" }}</td>
+            <td>{{ attempt.mac_address|default:"-" }}</td>
+            <td>{{ attempt.reason }}</td>
+            <td>{{ attempt.created_at|date:"Y-m-d H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-3">No unauthorized attempts.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
