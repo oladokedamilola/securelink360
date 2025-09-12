@@ -22,6 +22,72 @@ def privacy_policy(request):
 
 
 
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from accounts.decorators import company_admin_required, manager_required
+from companies.models import License, Announcement, Task
+from devices.models import Device
+from alerts.models import IntruderLog
+
+# ----------------
+# Admin Dashboard
+# ----------------
+@login_required
+@company_admin_required
+def admin_dashboard(request):
+    license = License.objects.filter(company=request.user.company).first()
+    devices_count = Device.objects.filter(company=request.user.company).count()
+    alerts_count = IntruderLog.objects.filter(company=request.user.company).count()
+    announcements = Announcement.objects.filter(company=request.user.company).order_by("-created_at")[:5]
+
+    return render(request, "dashboards/admin_dashboard.html", {
+        "license": license,
+        "devices_count": devices_count,
+        "alerts_count": alerts_count,
+        "announcements": announcements,
+    })
+
+
+# ----------------
+# Manager Dashboard
+# ----------------
+@login_required
+@manager_required
+def manager_dashboard(request):
+    team_members = request.user.users.all()  # Users linked to the same company that this manager manages
+    team_devices = Device.objects.filter(user__in=team_members)
+    team_alerts = IntruderLog.objects.filter(device__user__in=team_members).order_by("-timestamp")[:5]
+    tasks = Task.objects.filter(assigned_by=request.user).order_by("-created_at")[:5]
+    announcements = Announcement.objects.filter(manager=request.user).order_by("-created_at")[:5]
+
+    return render(request, "dashboards/manager_dashboard.html", {
+        "team_members": team_members,
+        "team_devices_count": team_devices.count(),
+        "team_alerts": team_alerts,
+        "tasks": tasks,
+        "announcements": announcements,
+    })
+
+
+# ----------------
+# Employee Dashboard
+# ----------------
+@login_required
+def employee_dashboard(request):
+    tasks = Task.objects.filter(assigned_to=request.user).order_by("completed", "due_date")[:5]
+    announcements = Announcement.objects.filter(
+        company=request.user.company, scope="company"
+    ) | Announcement.objects.filter(manager=request.user.manager)
+
+    return render(request, "dashboards/employee_dashboard.html", {
+        "tasks": tasks,
+        "announcements": announcements.order_by("-created_at")[:5],
+    })
+
+
+
+
+
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required

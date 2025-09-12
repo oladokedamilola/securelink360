@@ -1,13 +1,31 @@
 # accounts/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .models import User
-from companies.models import Company
-from .forms import AdminRegistrationForm
+from django.conf import settings
+from django.core.mail import send_mail
+from django.urls import reverse
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+from .models import UserInvite, Company
+from .forms import (
+    AdminRegistrationForm,
+    InviteUserForm,
+    EditUserForm,
+    InviteAcceptanceForm,
+)
+from .decorators import company_admin_required
+import uuid
 
 
+# ---------------------------
+# Registration
+# ---------------------------
 def register(request):
     if request.method == "POST":
         form = AdminRegistrationForm(request.POST)
@@ -23,70 +41,68 @@ def register(request):
                 email=email,
                 password=form.cleaned_data["password1"],
                 role=User.Roles.ADMIN,
-                company=company
+                company=company,
             )
 
             login(request, user)
             messages.success(request, f"Welcome to SecureLink360, {company_name}!")
             return redirect("admin_dashboard")
-
     else:
         form = AdminRegistrationForm()
     return render(request, "auth/register.html", {"form": form})
 
 
-# accounts/views.py
-from django.contrib.auth import login, authenticate
-from django.contrib.auth.views import LoginView
+# ---------------------------
+# Login (function-based)
+# ---------------------------
+def custom_login(request):
+    if request.method == "POST":
+        form = AuthenticationForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
 
-class CustomLoginView(LoginView):
-    template_name = "auth/login.html"
+            # Redirect by role
+            if user.role == User.Roles.ADMIN:
+                return redirect("admin_dashboard")
+            elif user.role == User.Roles.MANAGER:
+                return redirect("manager_dashboard")
+            return redirect("employee_dashboard")
+    else:
+        form = AuthenticationForm()
+    return render(request, "auth/login.html", {"form": form})
 
-    def get_success_url(self):
-        user = self.request.user
-        if user.is_company_admin():
-            return "/dashboard/admin/"
-        elif user.is_manager():
-            return "/dashboard/manager/"
-        elif user.is_viewer():
-            return "/dashboard/viewer/"
-        return "/dashboard/employee/"
-
-
-
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+# ---------------------------
+# Logout (function-based)
+# ---------------------------
+from django.contrib.auth import logout
 from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
+from django.shortcuts import redirect
 
-from .models import UserInvite, User
-from .forms import InviteUserForm
-from .decorators import company_admin_required
-import uuid
-from django.conf import settings
-from django.contrib.auth.decorators import login_required
-from django.core.mail import send_mail
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse
-from django.utils import timezone
-
-from .forms import InviteUserForm, EditUserForm
-from .models import UserInvite, Company
-
-User = settings.AUTH_USER_MODEL
+def custom_logout(request):
+    print("LOGOUT CALLED by:", request.user, "is_authenticated:", request.user.is_authenticated)
+    logout(request)
+    messages.success(request, "You have been logged out successfully.")
+    return redirect("login")
+  
 
 
+
+# ---------------------------
+# User Management (Admin only)
+# ---------------------------
 @login_required
 @company_admin_required
 def user_management(request):
     company = request.user.company
     users = company.users.all()
     invites = company.invites.filter(accepted=False)
-    return render(request, "user_management.html", {
-        "users": users,
-        "invites": invites,
-    })
+    return render(
+        request,
+        "user_management.html",
+        {"users": users, "invites": invites},
+    )
+
 
 @login_required
 @company_admin_required
@@ -108,11 +124,12 @@ def send_invite(request):
                 [invite.email],
             )
             messages.success(request, f"Invitation sent to {invite.email}")
-            return redirect("admin_users")
+            return redirect("user_management")
     else:
         form = InviteUserForm()
 
     return render(request, "companies/admin/send_invite.html", {"form": form})
+
 
 @login_required
 @company_admin_required
@@ -166,11 +183,9 @@ def revoke_invite(request, invite_id):
     return redirect("user_management")
 
 
-from .forms import InviteAcceptanceForm
-from django.contrib.auth import get_user_model, login
-
-User = get_user_model()
-
+# ---------------------------
+# Accept Invite
+# ---------------------------
 def accept_invite(request, token):
     invite = get_object_or_404(UserInvite, token=token, accepted=False)
 
@@ -183,7 +198,7 @@ def accept_invite(request, token):
         if form.is_valid():
             user.first_name = form.cleaned_data["first_name"]
             user.last_name = form.cleaned_data["last_name"]
-            user.role = invite.role  # ✅ use the admin-assigned role
+            user.role = invite.role
             user.set_password(form.cleaned_data["new_password1"])
             user.save()
 
@@ -191,7 +206,11 @@ def accept_invite(request, token):
             invite.save()
 
             login(request, user)
-            return redirect("user_dashboard")
+            if user.role == User.Roles.ADMIN:
+                return redirect("admin_dashboard")
+            elif user.role == User.Roles.MANAGER:
+                return redirect("manager_dashboard")
+            return redirect("employee_dashboard")
     else:
         form = InviteAcceptanceForm(user=User(email=invite.email))
 

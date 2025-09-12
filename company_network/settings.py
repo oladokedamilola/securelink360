@@ -81,6 +81,7 @@ INSTALLED_APPS = [
     'alerts',
     'notifications',
     'networks',
+    'legacy',
 
     'rest_framework',
     'django_extensions',
@@ -102,8 +103,23 @@ MIDDLEWARE += [
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "accounts.validators.validate_strong_password"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
+
+LOGIN_REDIRECT_URL = "/"           # after login, send to home_redirect
+LOGOUT_REDIRECT_URL = "/auth/login/"  # after logout, send to login (not home)
 
 
 ROOT_URLCONF = 'company_network.urls'

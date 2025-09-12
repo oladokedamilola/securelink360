@@ -45,6 +45,7 @@ class AdminRegistrationForm(BootstrapFormMixin, UserCreationForm):
         model = User
         fields = ["company_name", "email", "password1", "password2"]
 
+
 class EmailAuthenticationForm(BootstrapFormMixin, AuthenticationForm):
     username = forms.EmailField(
         label="Email",
@@ -55,6 +56,7 @@ class EmailAuthenticationForm(BootstrapFormMixin, AuthenticationForm):
         strip=False,
         widget=forms.PasswordInput(attrs={"placeholder": "Enter your password"})
     )
+
 
 class InviteUserForm(BootstrapFormMixin, forms.ModelForm):
     role = forms.ChoiceField(

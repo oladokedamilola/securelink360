@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Public Network Discovery{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="text-center mb-5">
+    <h2 class="fw-bold">📡 Public Network Discovery</h2>
+    <p class="text-muted">The following networks are available for connection. Note: Access is restricted.</p>
+  </div>
+
+  {% if networks %}
+  <div class="accordion shadow-sm rounded" id="networkAccordion">
+    {% for net in networks %}
+    <div class="accordion-item border-0 mb-3 shadow-sm rounded">
+      <h2 class="accordion-header" id="heading{{ net.id }}">
+        <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ net.id }}">
+          {{ net.name }}
+          <span class="ms-2 badge bg-info">{{ net.signal }}</span>
+        </button>
+      </h2>
+      <div id="collapse{{ net.id }}" class="accordion-collapse collapse" data-bs-parent="#networkAccordion">
+        <div class="accordion-body">
+          <p><strong>Type:</strong> {{ net.type }}</p>
+          <p><strong>Description:</strong> {{ net.description }}</p>
+          <button class="btn btn-gradient connect-btn" data-id="{{ net.id }}">
+            <i class="bi bi-wifi"></i> Connect
+          </button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center shadow-sm">
+    <i class="bi bi-exclamation-triangle"></i> No networks available.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="connectModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-4">
+      <div class="modal-header border-0">
+        <h5 class="modal-title fw-bold">Network Connection</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center" id="modal-body-content">
+        <!-- Connecting -->
+        <div id="connecting">
+          <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+          <p class="fw-semibold text-muted">Attempting to connect...</p>
+        </div>
+        <!-- Denied -->
+        <div id="denied" class="d-none">
+          <h5 class="text-danger mb-2">❌ Access Denied</h5>
+          <p class="text-muted">Your connection attempt has been blocked.</p>
+        </div>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Custom button gradient */
+.btn-gradient {
+  background: linear-gradient(90deg, #007bff, #00c6ff);
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  transition: 0.3s ease-in-out;
+}
+.btn-gradient:hover {
+  background: linear-gradient(90deg, #0062cc, #009acd);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+</style>
+
+<script>
+document.querySelectorAll(".connect-btn").forEach(btn => {
+  btn.addEventListener("click", function() {
+    let networkId = this.getAttribute("data-id");
+    let modal = new bootstrap.Modal(document.getElementById("connectModal"));
+    document.getElementById("connecting").classList.remove("d-none");
+    document.getElementById("denied").classList.add("d-none");
+    modal.show();
+
+    // Simulate "connecting"
+    setTimeout(() => {
+      fetch(`/legacy/attempt-connect/${networkId}/`, {method: "POST"})
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById("connecting").classList.add("d-none");
+        document.getElementById("denied").classList.remove("d-none");
+      })
+      .catch(err => {
+        document.getElementById("connecting").classList.add("d-none");
+        document.getElementById("denied").classList.remove("d-none");
+      });
+    }, 2000);
+  });
+});
+</script>
+{% endblock %}

@@ -1,3 +1,4 @@
+#company_network/accounts/middleware/company_license.py
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.contrib import messages
@@ -20,16 +21,15 @@ class CompanyLicenseMiddleware:
             company = user.company
             if not company:
                 messages.error(request, "You are not assigned to any company.")
-                return redirect("logout")
+                return redirect("home")  # 🚫 not logout
 
             license = getattr(company, "license", None)
             if not license or not license.is_active():
                 messages.error(request, "Your company license has expired.")
-                return redirect("logout")
+                return redirect("home")  # 🚫 not logout
 
-            # Seat validation (extra safety; handled at invite stage normally)
             if company.users.count() > license.seats:
                 messages.error(request, "Your company has exceeded its user limit.")
-                return redirect("logout")
+                return redirect("home")  # 🚫 not logout
 
         return self.get_response(request)

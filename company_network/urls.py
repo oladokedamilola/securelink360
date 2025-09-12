@@ -11,6 +11,7 @@ urlpatterns = [
     path('devices/', include('devices.urls')),
     path("company/", include("companies.urls")),
     path('alerts/', include('alerts.urls')),
+    path('l/', include('legacy.urls')),
     path("n/", include("networks.urls_admin")),  # admin-specific
     path("n/", include("networks.urls_manager")),  # manager-specific
     path("n/", include("networks.urls_employee")),  # employee-specific
@@ -33,7 +34,6 @@ urlpatterns = [
     path("admin/license/", views.admin_license, name="admin_license"),
     path("admin/devices/", views.admin_devices, name="admin_devices"),
     path("admin/alerts/", views.admin_alerts, name="admin_alerts"),
-
     path("admin/users/", account_views.user_management, name="user_management"),
     path("admin/users/invite/", account_views.send_invite, name="send_invite"),
     path("admin/users/<int:user_id>/edit/", account_views.edit_user, name="edit_user"),
@@ -54,9 +54,13 @@ urlpatterns = [
     path("tasks/complete/<int:task_id>/", views.complete_task, name="complete_task"),
 
 
-
     path("announcements", views.announcements_list, name="announcements_list"),
     path("create/", views.create_announcement, name="create_announcement"),
+
+    # Dashboards
+    path("dashboard/admin/", views.admin_dashboard, name="admin_dashboard"),
+    path("dashboard/manager/", views.manager_dashboard, name="manager_dashboard"),
+    path("dashboard/employee/", views.employee_dashboard, name="employee_dashboard"),
 ]
 
 
