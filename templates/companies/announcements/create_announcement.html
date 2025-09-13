@@ -1,6 +1,10 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
+
+{% block title %}Create Company-wide Announcement{% endblock %}
+
+
 {% block content %}
-<div class="container">
+<div class="container mt-4">
   <h2>Create Company-wide Announcement</h2>
   <form method="post" class="card p-3 shadow-sm">
     {% csrf_token %}

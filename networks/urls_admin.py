@@ -1,7 +1,9 @@
 from django.urls import path
 from . import views_admin
-
+from .views_visual import live_network
 urlpatterns = [
+    path('networks/<int:network_id>/live/', live_network, name='admin_live_network'),
+    path("live-networks/", views_admin.live_networks_list, name="live_networks_list"),
     # Company Networks
     path("admin/networks/", views_admin.company_networks, name="admin_company_networks"),
     path("admin/networks/create/", views_admin.create_network, name="admin_create_network"),

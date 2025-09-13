@@ -1,73 +1,182 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
 
 {% block title %}Manager Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+  .dashboard-wrapper { background-color: #f5f7fb; min-height: 100vh; padding: 1.5rem; }
+
+  /* Profile card */
+  .profile-card {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+  .profile-card .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #6A1B9A;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .profile-card .info h4 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+  .profile-card .info p { margin: 0; font-size: .9rem; color: #555; }
+
+  /* Greeting */
+  .onboarding-widget {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+  }
+  .onboarding-widget h3 { font-weight: 600; color: #6A1B9A; margin-bottom: .5rem; }
+
+  /* Summary cards */
+  .summary-cards { margin-bottom: 2rem; }
+  .summary-card {
+      border-radius: 1rem;
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem 1rem;
+      height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+      transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .summary-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  .summary-card h3 { font-size: 2rem; font-weight: 700; margin-bottom: .25rem; }
+  .summary-card p { margin: 0; font-weight: 500; }
+
+  /* Dashboard grid */
+  .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+  }
+  .dashboard-grid .card {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .dashboard-grid .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); }
+  .dashboard-grid .card h4 {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #34495e;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: .5rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-container">
+<div class="dashboard-wrapper">
 
-    <!-- Greeting -->
-    <div class="onboarding-widget">
-        <h3>👋 Welcome back, {{ user.first_name }}!</h3>
-        <p>Here’s what’s happening with your team today.</p>
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <div class="avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+    <div class="info">
+      <h4>{{ user.get_full_name }}</h4>
+      <p>{{ user.email }}</p>
+      <p><small>Role: Manager</small></p>
     </div>
+  </div>
 
-    <!-- Dashboard Grid -->
-    <div class="dashboard-grid">
+  <!-- Greeting -->
+  <div class="onboarding-widget">
+      <h3>👋 Welcome back, {{ user.first_name }}!</h3>
+      <p>Here’s what’s happening with your team today.</p>
+  </div>
 
-        <!-- Team Overview -->
-        <div class="card shadow-sm">
-            <h4>👥 Team Members</h4>
-            <ul>
-                {% for member in team_members %}
-                    <li>
-                        {{ member.name }}
-                        {% if member.onboarding_complete %}
-                            ✅ Onboarded
-                        {% else %}
-                            ⏳ In Progress
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <li>No team members assigned yet.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- Team Devices -->
-        <div class="card shadow-sm">
-            <h4>💻 Team Devices</h4>
-            <ul>
-                {% for device in team_devices %}
-                    <li>{{ device.user.name }} - {{ device.name }} ({{ device.ip_address }})</li>
-                {% empty %}
-                    <li>No devices registered for your team yet.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- Team Alerts -->
-        <div class="card shadow-sm">
-            <h4>⚠️ Team Alerts</h4>
-            <ul>
-                {% for alert in team_alerts %}
-                    <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.user.name }} - {{ alert.message }}</li>
-                {% empty %}
-                    <li>No alerts for your team 🎉</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- Announcements -->
-        <div class="card shadow-sm">
-            <h4>📢 Announcements</h4>
-            <ul>
-                {% for note in announcements %}
-                    <li>{{ note.message }} <small>({{ note.date|date:"M d" }})</small></li>
-                {% empty %}
-                    <li>No announcements at this time.</li>
-                {% endfor %}
-            </ul>
-        </div>
+  <!-- Summary Cards -->
+  <div class="row g-3 summary-cards">
+    <div class="col-6 col-md-3">
+      <div class="summary-card" style="background: linear-gradient(135deg, #4CAF50, #66BB6A);">
+        <h3>{{ team_members|length }}</h3>
+        <p>Team Members</p>
+      </div>
     </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-card" style="background: linear-gradient(135deg, #2196F3, #64B5F6);">
+        <h3>{{ team_devices|length }}</h3>
+        <p>Team Devices</p>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="summary-card" style="background: linear-gradient(135deg, #FF9800, #FFB74D);">
+        <h3>{{ team_alerts|length }}</h3>
+        <p>Team Alerts</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Grid -->
+  <div class="dashboard-grid">
+      <div class="card">
+          <h4>👥 Team Members</h4>
+          <ul>
+              {% for member in team_members %}
+                  <li>
+                      {{ member.name }} –
+                      {% if member.onboarding_complete %}
+                          <span class="badge bg-success">Onboarded</span>
+                      {% else %}
+                          <span class="badge bg-warning text-dark">In Progress</span>
+                      {% endif %}
+                  </li>
+              {% empty %}
+                  <li>No team members assigned yet.</li>
+              {% endfor %}
+          </ul>
+      </div>
+      <div class="card">
+          <h4>💻 Team Devices</h4>
+          <ul>
+              {% for device in team_devices %}
+                  <li>{{ device.user.name }} – {{ device.name }} ({{ device.ip_address }})</li>
+              {% empty %}
+                  <li>No devices registered for your team yet.</li>
+              {% endfor %}
+          </ul>
+      </div>
+      <div class="card">
+          <h4>⚠️ Team Alerts</h4>
+          <ul>
+              {% for alert in team_alerts %}
+                  <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.user.name }} – {{ alert.message }}</li>
+              {% empty %}
+                  <li>No alerts for your team 🎉</li>
+              {% endfor %}
+          </ul>
+      </div>
+      <div class="card">
+          <h4>📢 Announcements</h4>
+          <ul>
+              {% for note in announcements %}
+                  <li>{{ note.message }} <small>({{ note.date|date:"M d" }})</small></li>
+              {% empty %}
+                  <li>No announcements at this time.</li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
 </div>
 {% endblock %}

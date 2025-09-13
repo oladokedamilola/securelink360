@@ -73,7 +73,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'django.contrib.humanize',  
+    
      # Our apps
     'accounts',
     'companies',
@@ -97,10 +98,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-MIDDLEWARE += [
-    "accounts.middleware.company_license.CompanyLicenseMiddleware",
-    "accounts.middleware.company_scope.CompanyAccessMiddleware",
-]
+# MIDDLEWARE += [
+#     "accounts.middleware.company_license.CompanyLicenseMiddleware",
+#     "accounts.middleware.company_scope.CompanyAccessMiddleware",
+# ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -145,7 +152,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'company_network.wsgi.application'
-
+ASGI_APPLICATION = "company_network.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

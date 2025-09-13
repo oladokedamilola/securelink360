@@ -1,10 +1,14 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+
 {% block content %}
-<div class="container">
+<div class="container mt-4">
   <h2>User Management</h2>
 
   <!-- Invite New User -->
-  <a href="{% url 'invite_user' %}" class="btn btn-primary mb-3">➕ Invite New User</a>
+  <a href="{% url 'send_invite' %}" class="btn btn-primary mb-3">➕ Invite New User</a>
 
   <!-- Active Users -->
   <div class="card mb-4 shadow-sm">

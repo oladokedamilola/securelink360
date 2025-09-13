@@ -2,20 +2,28 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 from accounts import views as account_views
+from alerts import views as alerts_views
+from notifications.views import my_notifications
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    
     path('auth/', include('accounts.urls')),
     path('devices/', include('devices.urls')),
     path("company/", include("companies.urls")),
     path('alerts/', include('alerts.urls')),
     path('l/', include('legacy.urls')),
-    path("n/", include("networks.urls_admin")),  # admin-specific
-    path("n/", include("networks.urls_manager")),  # manager-specific
-    path("n/", include("networks.urls_employee")),  # employee-specific
-    path("n/live/", include("networks.urls_visual")),  # live network view
+    # networks/urls_admin.py -> for admin
+    path("n/admin/", include("networks.urls_admin")),
+
+    # networks/urls_manager.py -> for manager
+    path("n/manager/", include("networks.urls_manager")),
+
+    # networks/urls_employee.py -> for employee
+    path("n/employee/", include("networks.urls_employee")),
+
+    # networks/urls_visual.py -> live networks
+    path("n/live/", include("networks.urls_visual")),
+
     path("requests/", include("networks.urls_requests")),  # join requests
 
 
@@ -30,37 +38,45 @@ urlpatterns = [
     # path('settings/', views.settings, name='settings'),
     # path('reports/', views.reports, name='reports'),
     
-    # Admin Pages
-    path("admin/license/", views.admin_license, name="admin_license"),
-    path("admin/devices/", views.admin_devices, name="admin_devices"),
-    path("admin/alerts/", views.admin_alerts, name="admin_alerts"),
-    path("admin/users/", account_views.user_management, name="user_management"),
-    path("admin/users/invite/", account_views.send_invite, name="send_invite"),
-    path("admin/users/<int:user_id>/edit/", account_views.edit_user, name="edit_user"),
-    path("admin/users/<int:user_id>/deactivate/", account_views.deactivate_user, name="deactivate_user"),
-    path("admin/invites/<uuid:invite_id>/resend/", account_views.resend_invite, name="resend_invite"),
-    path("admin/invites/<uuid:invite_id>/revoke/", account_views.revoke_invite, name="revoke_invite"),
-    path("invites/accept/<uuid:token>/", account_views.accept_invite, name="accept_invite"),
-
-
+    # --- Admin Dashboard Pages ---
+    path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
+    path("admin/dashboard/license/", views.admin_license, name="admin_license"),
+    path("admin/dashboard/devices/", views.admin_devices, name="admin_devices"),
+    path("admin/dashboard/alerts/", views.admin_alerts, name="admin_alerts"),
+    path("admin/dashboard/users/", account_views.user_management, name="user_management"),
+    path("admin/dashboard/invite/", account_views.send_invite, name="send_invite"),
+    path("admin/dashboard/users/<int:user_id>/edit/", account_views.edit_user, name="edit_user"),
+    path("admin/dashboard/users/<int:user_id>/deactivate/", account_views.deactivate_user, name="deactivate_user"),
+    path("admin/dashboard/invite/<int:invite_id>/resend/", account_views.resend_invite, name="resend_invite"),
+    path("admin/dashboard/invite/<int:invite_id>/revoke/", account_views.revoke_invite, name="revoke_invite"),
+    path("invites/accept/<int:token>/", account_views.accept_invite, name="accept_invite"),
+    path("create/", views.create_announcement, name="create_announcement"),
+    path("alerts/", alerts_views.alert_list, name="alert_list"),
+    
     # Manager Pages
     path("team/overview/", views.team_overview, name="manager_team_overview"),
     path("team/devices/", views.team_devices, name="manager_team_devices"),
     path("team/alerts/", views.team_alerts, name="manager_team_alerts"),
     path("team/announcements/", views.team_announcements, name="manager_team_announcements"),
 
-    # employees/urls.py
+    # Employee Pages
     path("tasks/", views.employee_tasks, name="employee_tasks"),
     path("tasks/complete/<int:task_id>/", views.complete_task, name="complete_task"),
 
 
-    path("announcements", views.announcements_list, name="announcements_list"),
-    path("create/", views.create_announcement, name="create_announcement"),
+    # General
+    path("announcements/", views.announcements_list, name="announcements_list"),
+    path('notifications/', my_notifications, name='my_notifications'),
+
 
     # Dashboards
     path("dashboard/admin/", views.admin_dashboard, name="admin_dashboard"),
     path("dashboard/manager/", views.manager_dashboard, name="manager_dashboard"),
     path("dashboard/employee/", views.employee_dashboard, name="employee_dashboard"),
+
+
+
+    path('admin/', admin.site.urls),
 ]
 
 

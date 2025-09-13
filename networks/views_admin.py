@@ -93,9 +93,7 @@ def unauthorized_attempts(request):
 @login_required
 @company_admin_required
 def intruder_logs(request):
-    logs = IntruderLog.objects.filter(
-        unauthorized_attempt__network__company=request.user.company
-    ).select_related("unauthorized_attempt")
+    logs = IntruderLog.objects.filter(status='unauthorized')
 
     # 🔔 Send notification when new intruder logs exist (optional: only latest one)
     if logs.exists():
@@ -178,3 +176,14 @@ def reject_join_request(request, request_id):
     )
 
     return redirect("admin_join_requests")
+
+
+from django.shortcuts import render
+from .models import Network
+
+@login_required
+@company_admin_required
+def live_networks_list(request):
+    # Only show networks for the user's company
+    networks = Network.objects.filter(company=request.user.company).order_by("name")
+    return render(request, "networks/live/live_networks_list.html", {"networks": networks})

@@ -1,3 +1,4 @@
+<!-- Base template for authenticated users with responsive sidebar navigation -->
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
@@ -15,34 +16,98 @@
 
   <!-- Custom CSS -->
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  <link rel="shortcut icon" href="{% static 'images/fav-icon.png' %}" type="image/x-icon">
 
-  {% block extra_head %}{% endblock %}
+  <style>
+    /* Sidebar base */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 25%; /* default width */
+      max-width: 300px;
+      min-width: 220px;
+      background-color: #121212;
+      color: #fff;
+      overflow-y: auto;
+      transition: transform 0.3s ease-in-out;
+      z-index: 1050;
+    }
+
+    /* Desktop: always visible */
+    @media (min-width: 992px) {
+      .sidebar {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 25%;
+      }
+      #mobileMenuToggler {
+        display: none; /* hide hamburger on desktop */
+      }
+    }
+
+    /* Mobile: hidden by default */
+    @media (max-width: 991px) {
+      .sidebar {
+        width: 70%;
+        max-width: 300px;
+        transform: translateX(-100%);
+      }
+      .sidebar.mobile-visible {
+        transform: translateX(0);
+      }
+      .main-content {
+        margin-left: 0;
+      }
+      #mobileMenuToggler {
+        display: block;
+        margin: 1rem;
+        position: fixed;
+        z-index: 1060;
+      }
+    }
+
+    /* Sidebar header buttons */
+    .sidebar-close {
+      cursor: pointer;
+    }
+
+    /* Nav links */
+    .nav-link.active {
+      background-color: #00BCD4;
+      color: #fff !important;
+    }
+
+    .nav-link {
+      color: #ccc;
+      transition: background-color 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: #1f1f1f;
+      color: #fff;
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
 </head>
 
 <body class="light-mode">
-<!-- Mobile Toggle Button -->
-<button 
-  class="mobile-toggler d-lg-none btn btn-outline-primary rounded-circle shadow-sm"
-  id="mobileMenuToggler" 
-  aria-label="Open Sidebar"
-  style="
-    position: absolute; 
-    top: 1rem; 
-    left: 1rem; 
-    z-index: 1050; /* ensure it stays above everything */
-  "
->
+
+<!-- Mobile Hamburger -->
+<button class="mobile-toggler d-lg-none btn btn-outline-primary rounded-circle shadow-sm"
+        id="mobileMenuToggler" aria-label="Open Sidebar">
   <i class="fas fa-bars fs-4"></i>
 </button>
 
 <div class="wrapper d-flex">
-  <!-- Sidebar -->
+<!-- Sidebar -->
 <aside class="sidebar ps-3" id="sidebar">
   <div class="sidebar-header p-3 d-flex align-items-center justify-content-between border-bottom">
     <a href="{% url 'home' %}" class="d-flex align-items-center text-decoration-none">
-      <img src="{% static 'images/my-fav-icon.png' %}" alt="SecureLink 360" width="32" height="32" style="border-radius: 6px;">
-      <span class="ms-2 fw-bold" style="color: #00BCD4;">SecureLink 360</span>
+      <img src="{% static 'images/fav-icon.png' %}" alt="SecureLink 360" width="32" height="32" style="border-radius:6px;">
+      <span class="ms-2 fw-bold" style="color:#00BCD4;">SecureLink 360</span>
     </a>
     <button class="sidebar-close d-lg-none btn btn-sm text-muted" id="sidebarCloseBtn" aria-label="Close Sidebar">
       <i class="fas fa-times fs-5"></i>
@@ -52,262 +117,135 @@
   <nav class="sidebar-nav d-flex flex-column h-100">
     <ul class="nav flex-column px-3 py-3">
       {% if user.is_authenticated %}
-        <!-- Dashboard -->
-        <li class="nav-item">
-          <a href="{% url 'user_dashboard' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
-            <i class="fas fa-home me-2"></i> Dashboard
-          </a>
+
+        {# --- COMMON DASHBOARD LINK --- #}
+        {% if user.is_company_admin %}
+          <li class="nav-item">
+            <a href="{% url 'admin_dashboard' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+              <i class="fas fa-user-circle me-2"></i> Admin Dashboard
+            </a>
+          </li>
+        {% elif user.role == "manager" %}
+          <li class="nav-item">
+            <a href="{% url 'manager_dashboard' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'manager_dashboard' %}active{% endif %}">
+              <i class="fas fa-user-circle me-2"></i> Manager Dashboard
+            </a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a href="{% url 'employee_dashboard' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'employee_dashboard' %}active{% endif %}">
+              <i class="fas fa-user-circle me-2"></i> Employee Dashboard
+            </a>
+          </li>
+        {% endif %}
+
+        {# --- COMPANY ADMIN LINKS --- #}
+        {% if user.is_company_admin %}
+          <li class="nav-header mt-2 mb-1 text-uppercase small text-muted">Admin Pages</li>
+          <li class="nav-item"><a href="{% url 'company_profile' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-id-company me-2"></i> Company Profile</a></li>
+          <li class="nav-item"><a href="{% url 'admin_license' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-id-card me-2"></i> License</a></li>
+          <li class="nav-item"><a href="{% url 'admin_devices' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-desktop me-2"></i> Devices</a></li>
+          <li class="nav-item"><a href="{% url 'user_management' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-users me-2"></i> Users</a></li>
+          <li class="nav-item"><a href="{% url 'send_invite' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-user-plus me-2"></i> Invite Team</a></li>
+          <li class="nav-item"><a href="{% url 'admin_company_networks' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-network-wired me-2"></i> Networks</a></li>
+          <li class="nav-item"><a href="{% url 'admin_unauthorized_attempts' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-shield-alt me-2"></i> Unauthorized Attempts</a></li>
+          <li class="nav-item"><a href="{% url 'admin_intruder_logs' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-exclamation-circle me-2"></i> Intruder Logs</a></li>
+
+          {# --- Single link to Live Networks page --- #}
+          <li class="nav-item">
+            <a href="{% url 'live_networks_list' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'live_networks_list' %}active{% endif %}">
+              <i class="fas fa-network-wired me-2"></i> Live Networks
+            </a>
+          </li>
+        {% endif %}
+
+        {# --- MANAGER LINKS --- #}
+        {% if user.role == "manager" %}
+          <li class="nav-header mt-2 mb-1 text-uppercase small text-muted">Team Pages</li>
+          <li class="nav-item"><a href="{% url 'manager_team_overview' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-users me-2"></i> Team Overview</a></li>
+          <li class="nav-item"><a href="{% url 'manager_team_devices' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-desktop me-2"></i> Devices</a></li>
+          <li class="nav-item"><a href="{% url 'manager_team_alerts' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-exclamation-triangle me-2"></i> Alerts</a></li>
+          <li class="nav-item"><a href="{% url 'manager_team_announcements' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-bullhorn me-2"></i> Announcements</a></li>
+
+          {# --- Single link to Live Networks page --- #}
+          <li class="nav-item">
+            <a href="{% url 'live_networks_list' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'live_networks_list' %}active{% endif %}">
+              <i class="fas fa-network-wired me-2"></i> Live Networks
+            </a>
+          </li>
+        {% endif %}
+
+        {# --- EMPLOYEE LINKS --- #}
+        {% if user.role == "employee" %}
+          <li class="nav-header mt-2 mb-1 text-uppercase small text-muted">Tasks</li>
+          <li class="nav-item"><a href="{% url 'employee_tasks' %}" class="nav-link py-2 px-2 rounded"><i class="fas fa-tasks me-2"></i> My Tasks</a></li>
+        {% endif %}
+
+        {# --- COMMON LINKS FOR ALL ROLES --- #}
+        <li class="nav-item"><a href="{% url 'my_notifications' %}" class="nav-link py-2 px-2 rounded position-relative">
+          <i class="fas fa-bell me-2"></i> Notifications
+          {% if notifications_unread_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;">{{ notifications_unread_count }}</span>
+          {% endif %}
+        </a></li>
+
+        <li class="nav-item"><a href="#" class="nav-link py-2 px-2 rounded"><i class="fas fa-question-circle me-2"></i> Help</a></li>
+        <li class="nav-item"><a href="#" class="nav-link py-2 px-2 rounded"><i class="fas fa-envelope me-2"></i> Messages</a></li>
+        <li class="nav-item"><a href="#" class="nav-link py-2 px-2 rounded"><i class="fas fa-cogs me-2"></i> Settings</a></li>
+
+        <li class="nav-item mt-4">
+          <a href="{% url 'logout' %}" class="nav-link text-danger py-2 px-2 rounded logout-link"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
         </li>
 
-        <!-- Profile -->
-        <li class="nav-item">
-          <a href="{% url 'user_profile' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}">
-            <i class="fas fa-user-circle me-2"></i> Profile
-          </a>
-        </li>
-
-        {% if request.user.is_company_admin %}
-        <li class="nav-item mt-3">
-          <span class="text-muted small fw-bold">Admin Tools</span>
-        </li>
-
-        <li class="nav-item">
-          <a href="{% url 'admin_license' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'admin_license' %}active{% endif %}">
-            <i class="fas fa-id-card me-2"></i> License Management
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a href="{% url 'admin_users' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
-            <i class="fas fa-users-cog me-2"></i> User Management
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a href="{% url 'admin_devices' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'admin_devices' %}active{% endif %}">
-            <i class="fas fa-desktop me-2"></i> Device Management
-          </a>
-        </li>
-
-        <li class="nav-item">
-          <a href="{% url 'admin_alerts' %}" class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'admin_alerts' %}active{% endif %}">
-            <i class="fas fa-exclamation-triangle me-2"></i> Alert Management
-          </a>
-        </li>
       {% endif %}
-
-      {% if user.role == "manager" %}
-      <li class="nav-item mt-3">
-        <strong class="text-muted small ms-2">Team Management</strong>
-      </li>
-      <li class="nav-item">
-        <a href="{% url 'manager_team_overview' %}" class="nav-link py-2 px-2 rounded">
-          <i class="fas fa-users me-2"></i> Team Overview
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="{% url 'manager_team_devices' %}" class="nav-link py-2 px-2 rounded">
-          <i class="fas fa-laptop me-2"></i> Team Devices
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="{% url 'manager_team_alerts' %}" class="nav-link py-2 px-2 rounded">
-          <i class="fas fa-exclamation-triangle me-2"></i> Team Alerts
-        </a>
-      </li>
-      <li class="nav-item">
-        <a href="{% url 'manager_team_announcements' %}" class="nav-link py-2 px-2 rounded">
-          <i class="fas fa-bullhorn me-2"></i> Team Announcements
-        </a>
-      </li>
-    {% endif %}
-    
-
-
-
-        <!-- Tasks -->
-        <li class="nav-item">
-          <a href="{% url 'user_tasks' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_tasks' %}active{% endif %}">
-            <i class="fas fa-tasks me-2"></i> Tasks
-          </a>
-        </li>
-
-        <!-- Announcements -->
-        <li class="nav-item">
-          <a href="{% url 'user_announcements' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_announcements' %}active{% endif %}">
-            <i class="fas fa-bullhorn me-2"></i> Announcements
-          </a>
-        </li>
-
-        <!-- Help -->
-        <li class="nav-item">
-          <a href="{% url 'user_help' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_help' %}active{% endif %}">
-            <i class="fas fa-question-circle me-2"></i> Help
-          </a>
-        </li>
-
-        <!-- Notifications -->
-        <li class="nav-item">
-          <a href="{% url 'user_notifications' %}" 
-             class="nav-link py-2 px-2 rounded position-relative {% if request.resolver_match.url_name == 'user_notifications' %}active{% endif %}">
-            <i class="fas fa-bell me-2"></i> Notifications
-            {% if notifications_unread_count > 0 %}
-              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                {{ notifications_unread_count }}
-              </span>
-            {% endif %}
-          </a>
-        </li>
-
-        <!-- Messages -->
-        <li class="nav-item">
-          <a href="{% url 'user_messages' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_messages' %}active{% endif %}">
-            <i class="fas fa-envelope me-2"></i> Messages
-          </a>
-        </li>
-
-        <!-- Settings -->
-        <li class="nav-item">
-          <a href="{% url 'user_settings' %}" 
-             class="nav-link py-2 px-2 rounded {% if request.resolver_match.url_name == 'user_settings' %}active{% endif %}">
-            <i class="fas fa-cogs me-2"></i> Settings
-          </a>
-        </li>
-      {% endif %}
-
-      <!-- Logout -->
-      <li class="nav-item mt-4">
-        <a href="{% url 'logout' %}" class="nav-link text-danger py-2 px-2 rounded logout-link">
-          <i class="fas fa-sign-out-alt me-2"></i> Logout
-        </a>
-      </li>
     </ul>
   </nav>
 </aside>
 
-  <!-- Main Content Area -->
-  <div class="main-content ps-3 mt-3 flex-grow-1" id="mainContent">
 
+
+
+  <!-- Main Content -->
+  <div class="main-content ps-3 mt-3 flex-grow-1" id="mainContent">
     {% block flash %}
       {% if messages %}
-          <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index: 1055; width: auto; max-width: 90%;">
-            {% for message in messages %}
-              <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow" role="alert" style="min-width: 300px;">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          </div>
+        <div class="position-fixed top-0 start-50 translate-middle-x mt-3" style="z-index:1055; width:auto; max-width:90%;">
+          {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow" role="alert" style="min-width:300px;">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
       {% endif %}
     {% endblock flash %}
-
     {% block content %}{% endblock %}
   </div>
 </div>
 
-<!-- Modal for Profile Image Update -->
-<div class="modal fade" id="profileImageModal" tabindex="-1" aria-labelledby="profileImageModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <form method="post" enctype="multipart/form-data" action="#" class="modal-content border-0" style="background-color: #121212; font-family: 'Poppins', sans-serif;">
-      {% csrf_token %}
-
-      <div class="modal-header" style="background-color: #00BCD4; color: #ffffff; border-bottom: none;">
-        <h5 class="modal-title" id="profileImageModalLabel">Update Profile Image</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="modal-body text-center">
-        {% if user.profile_image %}
-          <img id="modalImagePreview" src="{{ user.profile_image.url }}" class="rounded-circle shadow-sm mb-3 border" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #00BCD4;" alt="Preview">
-        {% else %}
-          <img id="modalImagePreview" src="{% static 'images/user.jpg' %}" class="rounded-circle shadow-sm mb-3 border" style="width: 120px; height: 120px; object-fit: cover; border: 3px solid #00BCD4;" alt="Preview">
-        {% endif %}
-        <div class="mb-3">
-          <input class="form-control" type="file" name="profile_image" id="modalProfileImageInput" accept="image/*" required>
-        </div>
-      </div>
-
-      <div class="modal-footer justify-content-between" style="background-color: #eaeaea; border-top: none;">
-        <button type="button" class="btn" data-bs-dismiss="modal" style="color: #636e72;">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const input = document.getElementById('modalProfileImageInput');
-    const preview = document.getElementById('modalImagePreview');
-    input.addEventListener('change', function () {
-      const file = this.files[0];
-      if (file) {
-        preview.src = URL.createObjectURL(file);
-      }
-    });
-  });
-</script>
-
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
+document.addEventListener("DOMContentLoaded", function () {
   const toggler = document.getElementById('mobileMenuToggler');
   const sidebar = document.getElementById('sidebar');
   const closeBtn = document.getElementById('sidebarCloseBtn');
 
   toggler.addEventListener('click', () => {
     sidebar.classList.add('mobile-visible');
-    toggler.classList.add('d-none');
+    toggler.style.display = 'none';
   });
 
   closeBtn.addEventListener('click', () => {
     sidebar.classList.remove('mobile-visible');
-    toggler.classList.remove('d-none');
+    toggler.style.display = 'block';
   });
 
-  // Auto-dismiss flash messages after 7 seconds
+  // Auto-dismiss flash
   setTimeout(() => {
-    const alerts = document.querySelectorAll('.alert');
-    alerts.forEach(alert => {
-      const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-      bsAlert.close();
-    });
+    document.querySelectorAll('.alert').forEach(a => bootstrap.Alert.getOrCreateInstance(a).close());
   }, 7000);
-</script>
-<script>
-  const ws_scheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const notificationsSocket = new WebSocket(
-      ws_scheme + '://' + window.location.host + "/ws/notifications/"
-  );
-
-  notificationsSocket.onmessage = function(e) {
-      const data = JSON.parse(e.data);
-      const message = data.message;
-      const link = data.link || "#";
-
-      // Show in a notification dropdown or list
-      const list = document.getElementById("notifications-list");
-      if (list) {
-          const item = document.createElement("li");
-          item.innerHTML = `<a href="${link}">${message}</a>`;
-          list.prepend(item);
-      }
-
-      // Play notification sound
-      const audio = new Audio("/static/sounds/notification.mp3");
-      audio.play();
-
-      // Optionally show a toast popup
-      if (window.showToast) {
-          showToast(message);
-      }
-  };
+});
 </script>
 
 {% block extra_js %}{% endblock %}

@@ -1,58 +1,480 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
+{% load static humanize %}
 
-{% block title %}{{ company.name }} Dashboard{% endblock %}
+{% block title %}{{ company.name }} Admin Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --primary-color: #1976D2;
+    --primary-light: #E3F2FD;
+    --secondary-color: #FF9800;
+    --success-color: #4CAF50;
+    --warning-color: #FFC107;
+    --danger-color: #F44336;
+    --dark-color: #343A40;
+    --light-color: #F8F9FA;
+    --gray-color: #6C757D;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+/* --- Dashboard Container --- */
+.dashboard-content {
+    padding: 2rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --- Checklist Styling --- */
+.checklist .list-group-item {
+    font-size: 1rem;
+    font-weight: 500;
+}
+.checklist .fa-check-circle {
+    margin-right: .5rem;
+}
+.checklist .fa-circle {
+    margin-right: .5rem;
+}
+
+/* --- Greeting Message --- */
+.dashboard-greeting {
+    text-align: center;
+    font-size: 1.75rem;
+    margin: 1.5rem 0 2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    width: 100%;
+}
+
+/* --- User Profile Card --- */
+.user-card {
+    max-width: 100%;
+    margin: 0 auto 2.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    background-color: #fff;
+    width: 100%;
+    padding: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+.user-card .row {
+    margin: 0;
+    width: 100%;
+    align-items: center;
+}
+.user-card .col {
+    padding: 0 0.5rem;
+}
+.user-card img {
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+}
+.user-card h4 {
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+.user-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+.user-detail-item {
+    margin-bottom: 0.5rem;
+}
+.user-detail-item strong {
+    color: var(--gray-color);
+    margin-right: 0.5rem;
+}
+
+/* --- Onboarding Widget --- */
+.onboarding-widget {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2.5rem;
+    border-left: 4px solid var(--secondary-color);
+}
+.onboarding-widget h4 {
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--dark-color);
+}
+.onboarding-widget .progress {
+    height: 12px;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    background-color: #e9ecef;
+    overflow: hidden;
+}
+.onboarding-widget .progress-bar {
+    border-radius: 10px;
+    transition: width 1s ease-in-out;
+}
+.onboarding-widget .checklist {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.onboarding-widget .checklist li {
+    padding: 1rem 0;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    border-bottom: 1px solid #f1f1f1;
+    transition: var(--transition);
+}
+.onboarding-widget .checklist li:last-child {
+    border-bottom: none;
+}
+.onboarding-widget .checklist li.done {
+    color: var(--success-color);
+}
+.onboarding-widget .checklist li:not(.done) {
+    color: var(--gray-color);
+}
+.onboarding-widget .checklist li i {
+    margin-right: 1rem;
+    font-size: 1.2rem;
+}
+.onboarding-widget .checklist li:not(.done):hover {
+    transform: translateX(5px);
+    color: var(--dark-color);
+}
+.onboarding-widget .checklist li:not(.done) {
+    animation: pulse 2s infinite;
+}
+.onboarding-complete {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: rgba(40, 167, 69, 0.1);
+    border-radius: 8px;
+    font-weight: 600;
+    color: var(--success-color);
+    text-align: center;
+    animation: fadeIn 1s ease;
+}
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* --- Summary Cards --- */
+.summary-cards-container {
+    margin-bottom: 2.5rem;
+    width: 100%;
+}
+.summary-cards-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+.summary-card {
+    background: linear-gradient(135deg, #1976D2, #2196F3);
+    color: #fff;
+    border-radius: var(--border-radius);
+    padding: 1.75rem 1.25rem;
+    text-align: center;
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    cursor: default;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+.summary-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: rgba(255, 255, 255, 0.1);
+    transform: rotate(45deg);
+    transition: var(--transition);
+    opacity: 0;
+}
+.summary-card:hover::before { opacity: 1; }
+.summary-card:hover { transform: translateY(-8px); }
+.summary-card h3 { font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem; position: relative; }
+.summary-card p { font-size: 1.1rem; font-weight: 600; margin: 0; position: relative; }
+
+/* --- Dashboard Grid Widgets --- */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.75rem;
+    margin-bottom: 2.5rem;
+}
+.dashboard-grid .card {
+    background-color: #fff;
+    padding: 1.75rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    border-top: 4px solid var(--primary-color);
+}
+.dashboard-grid .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+}
+.dashboard-grid .card h5 {
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--dark-color);
+    border-bottom: 1px solid #f1f1f1;
+    padding-bottom: 0.75rem;
+}
+.dashboard-grid ul { padding-left: 1rem; margin: 0; }
+.dashboard-grid li { margin-bottom: 0.75rem; padding: 0.5rem 0; border-bottom: 1px dashed #f1f1f1; transition: var(--transition); }
+.dashboard-grid li:hover { background-color: var(--primary-light); padding-left: 0.5rem; border-radius: 4px; }
+.dashboard-grid li:last-child { border-bottom: none; margin-bottom: 0; }
+
+/* --- Responsive Tweaks --- */
+@media (max-width: 991.98px) {
+    .user-card .row { flex-direction: column; text-align: center; }
+    .user-details-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+    .user-card img { margin-bottom: 1rem; }
+}
+@media (max-width: 768px) {
+    .dashboard-content { padding: 1rem; }
+    .summary-cards-row { grid-template-columns: repeat(2, 1fr); }
+    .dashboard-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 576px) {
+    .user-card img { width: 110px; height: 110px; }
+    .summary-cards-row { grid-template-columns: 1fr; }
+    .summary-card { padding: 1.5rem 1rem; }
+    .summary-card h3 { font-size: 2rem; }
+    .dashboard-greeting { font-size: 1.5rem; }
+}
+
+/* Animations */
+@keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.user-card, .onboarding-widget, .summary-cards-container, .dashboard-grid { animation: slideIn 0.5s ease forwards; }
+.onboarding-widget { animation-delay: 0.1s; }
+.summary-cards-container { animation-delay: 0.2s; }
+.dashboard-grid { animation-delay: 0.3s; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
+<div class="dashboard-content mt-4">
 
-    <!-- Onboarding Checklist -->
-    <div class="onboarding-widget">
-        <h3>🚀 Onboarding Checklist</h3>
-        <ul class="checklist">
-            <li class="{% if onboarding.company_profile %}done{% endif %}">Complete Company Profile</li>
-            <li class="{% if onboarding.invite_team %}done{% endif %}">Invite Your Team</li>
-            <li class="{% if onboarding.add_device %}done{% endif %}">Register First Device</li>
-            <li class="{% if onboarding.review_security %}done{% endif %}">Review Security Settings</li>
-        </ul>
-        {% if onboarding.complete %}
-            <div class="onboarding-complete">✅ Onboarding Complete!</div>
-        {% endif %}
+    <!-- Greeting Message -->
+    <div class="dashboard-greeting">
+        Welcome back, {{ user.full_name|default:"Admin" }}! 👋
     </div>
 
-    <!-- Dashboard Widgets -->
-    <div class="dashboard-grid">
-
-        <!-- License Info -->
-        <div class="card p-3 shadow-sm">
-            <h4>💳 License Info</h4>
-            <p><strong>Plan:</strong> {{ license.plan }}</p>
-            <p><strong>Expires:</strong> {{ license.expiry_date }}</p>
-            <p><strong>Seats:</strong> {{ license.seats }}</p>
+    <!-- User Profile Card -->
+    <div class="card shadow rounded-4 p-3 user-card">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                {% if user.profile_image %}
+                    <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle border border-3">
+                {% else %}
+                    <img src="{% static 'images/user.jpg' %}" alt="Default Profile" class="rounded-circle border border-3">
+                {% endif %}
+            </div>
+            <div class="col">
+                <h4 class="mb-3">{{ user.full_name|default:"Admin" }}</h4>
+                <div class="user-details-grid">
+                    <div class="user-detail-item"><strong>Company:</strong> {{ company.name }}</div>
+                    <div class="user-detail-item"><strong>Email:</strong> {{ user.email }}</div>
+                    <div class="user-detail-item"><strong>Role:</strong> Administrator</div>
+                    <div class="user-detail-item"><strong>Status:</strong> <span class="badge bg-success">Active</span></div>
+                </div>
+            </div>
         </div>
+    </div>
 
-        <!-- Devices -->
-        <div class="card p-3 shadow-sm">
-            <h4>💻 Devices</h4>
+<!-- Onboarding Widget -->
+<div class="onboarding-widget">
+    <h4><i class="fas fa-rocket"></i> Onboarding Checklist</h4>
+
+    <!-- Progress bar always visible -->
+    <div class="progress mb-3">
+        <div class="progress-bar bg-success" role="progressbar"
+             style="width: {{ onboarding.percent_complete }}%;"
+             aria-valuenow="{{ onboarding.percent_complete }}" aria-valuemin="0" aria-valuemax="100">
+            {{ onboarding.percent_complete }}%
+        </div>
+    </div>
+
+    <!-- Dropdown toggle for checklist -->
+    <button class="btn btn-outline-secondary btn-sm mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#onboardingChecklist" aria-expanded="false" aria-controls="onboardingChecklist">
+        {% if onboarding.complete %}View Completed Steps{% else %}View Checklist{% endif %}
+        <i class="fas fa-chevron-down ms-1"></i>
+    </button>
+
+    <!-- Collapsible checklist -->
+    <ul class="checklist collapse" id="onboardingChecklist">
+        <li class="{% if onboarding.company_profile %}done{% endif %}">
+            <i class="fas {% if onboarding.company_profile %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            {% if onboarding.company_profile %}
+                Complete Company Profile
+            {% else %}
+                <a href="{% url 'company_profile' %}">Complete Company Profile</a>
+            {% endif %}
+        </li>
+        <li class="{% if onboarding.invite_team %}done{% endif %}">
+            <i class="fas {% if onboarding.invite_team %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            {% if onboarding.invite_team %}
+                Invite Your Team
+            {% else %}
+                <a href="{% url 'send_invite' %}">Invite Your Team</a>
+            {% endif %}
+        </li>
+        <li class="{% if onboarding.add_device %}done{% endif %}">
+            <i class="fas {% if onboarding.add_device %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            {% if onboarding.add_device %}
+                Register First Device
+            {% else %}
+                <a href="{% url 'register_device' %}">Register First Device</a>
+            {% endif %}
+        </li>
+        <li class="{% if onboarding.review_security %}done{% endif %}">
+            <i class="fas {% if onboarding.review_security %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            {% if onboarding.review_security %}
+                Review Security Settings
+            {% else %}
+                <a href="{% url 'security_settings' %}">Review Security Settings</a>
+            {% endif %}
+        </li>
+        <li class="{% if onboarding.create_network %}done{% endif %}">
+            <i class="fas {% if onboarding.create_network %}fa-check-circle{% else %}fa-circle{% endif %}"></i>
+            {% if onboarding.create_network %}
+                Register First Network
+            {% else %}
+                <a href="{% url 'admin_create_network' %}">Register First Network</a>
+            {% endif %}
+        </li>
+    </ul>
+
+    {% if onboarding.complete %}
+        <div class="onboarding-complete">✅ Onboarding Complete! You're all set!</div>
+    {% endif %}
+</div>
+
+
+    <!-- Summary Cards -->
+    <div class="summary-cards-container">
+        <div class="summary-cards-row">
+            <div class="summary-card"><h3>{{ devices|length }}</h3><p>Devices Registered</p></div>
+            <div class="summary-card"><h3>{{ alerts|length }}</h3><p>Recent Alerts</p></div>
+            <div class="summary-card"><h3>{{ license.seats }}</h3><p>Total License Seats</p></div>
+            <div class="summary-card"><h3>{{ onboarding.users_onboarded|default:"0" }}</h3><p>Users Onboarded</p></div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid Widgets -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <h5><i class="fas fa-desktop"></i> Recent Devices</h5>
             <ul>
-                {% for device in devices %}
+                {% for device in devices|slice:":5" %}
                     <li>{{ device.name }} ({{ device.ip_address }})</li>
                 {% empty %}
                     <li>No devices registered yet.</li>
                 {% endfor %}
+                {% if devices|length > 5 %}
+                    <li class="text-muted">+{{ devices|length|add:"-5" }} more devices</li>
+                {% endif %}
             </ul>
         </div>
 
-        <!-- Alerts -->
-        <div class="card p-3 shadow-sm">
-            <h4>⚠️ Recent Alerts</h4>
+        <div class="card">
+            <h5><i class="fas fa-exclamation-triangle"></i> Recent Alerts</h5>
             <ul>
-                {% for alert in alerts %}
+                {% for alert in alerts|slice:":5" %}
                     <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.message }}</li>
                 {% empty %}
-                    <li>No alerts found.</li>
+                    <li>No alerts found. Good job!</li>
                 {% endfor %}
+                {% if alerts|length > 5 %}
+                    <li class="text-muted">+{{ alerts|length|add:"-5" }} more alerts</li>
+                {% endif %}
             </ul>
         </div>
     </div>
 </div>
+
+<!-- Onboarding Modal -->
+{% if not onboarding.complete %}
+<div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content rounded-3 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="onboardingLabel"><i class="fas fa-rocket"></i> Onboarding Checklist</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Welcome! Complete these steps to get your company up and running:</p>
+
+        <div class="progress mb-3" style="height: 18px;">
+          <div class="progress-bar bg-success fw-bold" role="progressbar" style="width: {{ onboarding.percent_complete }}%;" aria-valuenow="{{ onboarding.percent_complete }}" aria-valuemin="0" aria-valuemax="100">
+            {{ onboarding.percent_complete }}%
+          </div>
+        </div>
+
+        <ul class="list-group">
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Complete Company Profile
+            {% if onboarding.company_profile %}<span class="badge bg-success">Done</span>{% else %}<a href="{% url 'company_profile' %}" class="btn btn-sm btn-outline-primary">Go</a>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Invite Your Team
+            {% if onboarding.invite_team %}<span class="badge bg-success">Done</span>{% else %}<a href="{% url 'send_invite' %}" class="btn btn-sm btn-outline-primary">Go</a>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Register First Device
+            {% if onboarding.add_device %}<span class="badge bg-success">Done</span>{% else %}<a href="{% url 'register_device' %}" class="btn btn-sm btn-outline-primary">Go</a>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Review Security Settings
+            {% if onboarding.review_security %}<span class="badge bg-success">Done</span>{% else %}<a href="{% url 'security_settings' %}" class="btn btn-sm btn-outline-primary">Go</a>{% endif %}
+          </li>
+          <li class="list-group-item d-flex justify-content-between align-items-center">
+            Register First Network
+            {% if onboarding.create_network %}<span class="badge bg-success">Done</span>{% else %}<a href="{% url 'admin_create_network' %}" class="btn btn-sm btn-outline-primary">Go</a>{% endif %}
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var onboardingModal = new bootstrap.Modal(document.getElementById('onboardingModal'));
+    onboardingModal.show();
+
+    // Animate progress bar
+    const progressBar = document.querySelector('#onboardingModal .progress-bar');
+    if(progressBar){
+        const targetWidth = progressBar.style.width;
+        progressBar.style.width = '0';
+        setTimeout(() => { progressBar.style.width = targetWidth; }, 500);
+    }
+});
+</script>
+{% endif %}
 {% endblock %}

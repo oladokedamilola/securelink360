@@ -62,7 +62,11 @@ def custom_login(request):
             user = form.get_user()
             login(request, user)
 
-            # Redirect by role
+            # If Django superuser → go to Django admin panel
+            if user.is_superuser:
+                return redirect(reverse("admin:index"))
+
+            # Otherwise redirect by company role
             if user.role == User.Roles.ADMIN:
                 return redirect("admin_dashboard")
             elif user.role == User.Roles.MANAGER:
@@ -70,6 +74,7 @@ def custom_login(request):
             return redirect("employee_dashboard")
     else:
         form = AuthenticationForm()
+
     return render(request, "auth/login.html", {"form": form})
 
 # ---------------------------
@@ -99,7 +104,7 @@ def user_management(request):
     invites = company.invites.filter(accepted=False)
     return render(
         request,
-        "user_management.html",
+        "companies/admin/user_management.html",
         {"users": users, "invites": invites},
     )
 

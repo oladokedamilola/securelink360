@@ -1,61 +1,165 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
 
 {% block title %}My Dashboard{% endblock %}
 
+{% block extra_css %}
+<style>
+  .dashboard-wrapper {
+      background-color: #f5f7fb;
+      min-height: 100vh;
+      padding: 1.5rem;
+  }
+
+  /* Profile card */
+  .profile-card {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+  }
+  .profile-card .avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #1976D2;
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .profile-card .info h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+  }
+  .profile-card .info p {
+      margin: 0;
+      font-size: .9rem;
+      color: #555;
+  }
+
+  /* Onboarding widget */
+  .onboarding-widget {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+  }
+  .onboarding-widget h3 {
+      font-weight: 600;
+      color: #1976D2;
+      margin-bottom: 1rem;
+  }
+  .checklist { list-style: none; padding: 0; margin: 0 0 1rem 0; }
+  .checklist li {
+      padding: .6rem 1rem;
+      margin-bottom: .5rem;
+      border-radius: .5rem;
+      background: #f0f2f5;
+  }
+  .checklist li.done { background: #e8f5e9; color: #388e3c; font-weight: 500; }
+  .onboarding-complete {
+      padding: .75rem 1rem;
+      background: #e8f5e9;
+      border-radius: .5rem;
+      color: #2e7d32;
+      font-weight: 600;
+      text-align: center;
+  }
+
+  /* Dashboard grid */
+  .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+  }
+  .dashboard-grid .card {
+      background: #fff;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transition: transform .2s ease, box-shadow .2s ease;
+  }
+  .dashboard-grid .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  }
+  .dashboard-grid .card h4 {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: #34495e;
+      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: .5rem;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="dashboard-container">
+<div class="dashboard-wrapper">
 
-    <!-- Onboarding Checklist -->
-    <div class="onboarding-widget">
-        <h3>👋 Welcome, {{ user.first_name }}!</h3>
-        <ul class="checklist">
-            <li class="{% if onboarding.profile_complete %}done{% endif %}">Complete Your Profile</li>
-            <li class="{% if onboarding.device_registered %}done{% endif %}">Register Your Device</li>
-            <li class="{% if onboarding.mfa_enabled %}done{% endif %}">Enable MFA</li>
-        </ul>
-        {% if onboarding.complete %}
-            <div class="onboarding-complete">✅ You're all set!</div>
-        {% endif %}
+  <!-- Profile Card -->
+  <div class="profile-card">
+    <div class="avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
+    <div class="info">
+      <h4>{{ user.get_full_name }}</h4>
+      <p>{{ user.email }}</p>
+      <p><small>Role: Employee</small></p>
     </div>
+  </div>
 
-    <!-- Dashboard Widgets -->
-    <div class="dashboard-grid">
+  <!-- Onboarding Checklist -->
+  <div class="onboarding-widget">
+      <h3>👋 Welcome, {{ user.first_name }}!</h3>
+      <ul class="checklist">
+          <li class="{% if onboarding.profile_complete %}done{% endif %}">Complete Your Profile</li>
+          <li class="{% if onboarding.device_registered %}done{% endif %}">Register Your Device</li>
+          <li class="{% if onboarding.mfa_enabled %}done{% endif %}">Enable MFA</li>
+      </ul>
+      {% if onboarding.complete %}
+          <div class="onboarding-complete">✅ You're all set!</div>
+      {% endif %}
+  </div>
 
-        <!-- My Devices -->
-        <div class="card shadow-sm">
-            <h4>💻 My Devices</h4>
-            <ul>
-                {% for device in my_devices %}
-                    <li>{{ device.name }} ({{ device.ip_address }})</li>
-                {% empty %}
-                    <li>No devices linked yet.</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- My Alerts -->
-        <div class="card shadow-sm">
-            <h4>⚠️ My Alerts</h4>
-            <ul>
-                {% for alert in my_alerts %}
-                    <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.message }}</li>
-                {% empty %}
-                    <li>No alerts for you 🎉</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <!-- Announcements (optional) -->
-        <div class="card shadow-sm">
-            <h4>📢 Company Announcements</h4>
-            <ul>
-                {% for note in announcements %}
-                    <li>{{ note.message }} <small>({{ note.date|date:"M d" }})</small></li>
-                {% empty %}
-                    <li>No announcements right now.</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+  <!-- Dashboard Widgets -->
+  <div class="dashboard-grid">
+      <div class="card">
+          <h4>💻 My Devices</h4>
+          <ul>
+              {% for device in my_devices %}
+                  <li>{{ device.name }} ({{ device.ip_address }})</li>
+              {% empty %}
+                  <li>No devices linked yet.</li>
+              {% endfor %}
+          </ul>
+      </div>
+      <div class="card">
+          <h4>⚠️ My Alerts</h4>
+          <ul>
+              {% for alert in my_alerts %}
+                  <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.message }}</li>
+              {% empty %}
+                  <li>No alerts for you 🎉</li>
+              {% endfor %}
+          </ul>
+      </div>
+      <div class="card">
+          <h4>📢 Company Announcements</h4>
+          <ul>
+              {% for note in announcements %}
+                  <li>{{ note.message }} <small>({{ note.date|date:"M d" }})</small></li>
+              {% empty %}
+                  <li>No announcements right now.</li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
 </div>
 {% endblock %}

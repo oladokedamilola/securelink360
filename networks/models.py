@@ -69,15 +69,6 @@ class UnauthorizedAttempt(models.Model):
     def __str__(self):
         return f"Unauthorized attempt by {self.user or 'Unknown'} on {self.network.name}"
 
-    # def save(self, *args, **kwargs):
-    #     super().save(*args, **kwargs)
-    #     from alerts.models import IntruderLog
-    #     if not hasattr(self, "intruder_log"):
-    #         IntruderLog.objects.create(
-    #             mac_address=self.mac_address or "unknown",
-    #             ip_address=self.ip_address or "0.0.0.0",
-    #             unauthorized_attempt=self,
-    #             status="Detected"
-    #         )
+
 
 

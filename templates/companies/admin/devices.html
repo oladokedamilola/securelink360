@@ -1,6 +1,10 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
+
+{% block title %}Device Management{% endblock %}
+
+
 {% block content %}
-<div class="container">
+<div class="container mt-4">
   <h2>Device Management</h2>
   <ul class="list-group">
     {% for device in devices %}

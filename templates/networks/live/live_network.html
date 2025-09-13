@@ -1,7 +1,8 @@
 {% extends "user_base.html" %}
+{% load static %}
 {% block title %}Live Network — {{ network.name }}{% endblock %}
 {% block content %}
-<div class="container-fluid">
+<div class="container-fluid mt-5">
   <h2 class="mb-3">Live Network — {{ network.name }}</h2>
 
   <audio id="notifSound" preload="auto">

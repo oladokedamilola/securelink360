@@ -32,21 +32,62 @@ from alerts.models import IntruderLog
 # ----------------
 # Admin Dashboard
 # ----------------
+from devices.models import Device
+from alerts.models import IntruderLog
+from companies.models import License, Announcement
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from accounts.decorators import company_admin_required
+from devices.models import Device
+from alerts.models import IntruderLog
+from companies.models import Announcement, License
+from networks.models import Network
+from companies.models import SecuritySetting  # assuming you track security settings
+
 @login_required
 @company_admin_required
 def admin_dashboard(request):
-    license = License.objects.filter(company=request.user.company).first()
-    devices_count = Device.objects.filter(company=request.user.company).count()
-    alerts_count = IntruderLog.objects.filter(company=request.user.company).count()
-    announcements = Announcement.objects.filter(company=request.user.company).order_by("-created_at")[:5]
+    user = request.user
+    company = user.company
+
+    # License info
+    license = License.objects.filter(company=company).first()
+
+    # Devices count
+    devices_count = Device.objects.filter(user__company=company).count()
+
+    # Alerts count (Intruder Logs)
+    alerts_count = IntruderLog.objects.filter(
+        models.Q(device__user__company=company) |
+        models.Q(device__isnull=True, mac_address__isnull=False, note__icontains=company.name)  # optional fallback
+    ).distinct().count()
+
+    # Recent announcements
+    announcements = Announcement.objects.filter(company=company).order_by("-created_at")[:5]
+
+    # Onboarding checklist
+    onboarding = {
+        "company_profile": bool(company.name and getattr(company, "domain", None)),
+        "invite_team": company.users.exclude(id=user.id).exists(),
+        "add_device": devices_count > 0,
+        "review_security": SecuritySetting.objects.filter(company=company).exists(),
+        "create_network": Network.objects.filter(company=company).exists(),
+    }
+    total_steps = len(onboarding)
+    completed_steps = sum(1 for v in onboarding.values() if v)
+    onboarding["percent_complete"] = int((completed_steps / total_steps) * 100)
+    onboarding["complete"] = completed_steps == total_steps
 
     return render(request, "dashboards/admin_dashboard.html", {
+        "user": user,
+        "company": company,
         "license": license,
         "devices_count": devices_count,
         "alerts_count": alerts_count,
         "announcements": announcements,
+        "onboarding": onboarding,
     })
-
 
 # ----------------
 # Manager Dashboard
@@ -54,19 +95,33 @@ def admin_dashboard(request):
 @login_required
 @manager_required
 def manager_dashboard(request):
-    team_members = request.user.users.all()  # Users linked to the same company that this manager manages
+    # All employees in this manager's company (excluding other managers/admins)
+    team_members = request.user.company.users.filter(role="employee")
+
+    # Devices owned by employees
     team_devices = Device.objects.filter(user__in=team_members)
-    team_alerts = IntruderLog.objects.filter(device__user__in=team_members).order_by("-timestamp")[:5]
+
+    # Intruder logs linked to those employees' devices
+    team_alerts = IntruderLog.objects.filter(
+        device__user__in=team_members
+    ).order_by("-detected_at")[:5]
+
+    # Tasks this manager has assigned
     tasks = Task.objects.filter(assigned_by=request.user).order_by("-created_at")[:5]
-    announcements = Announcement.objects.filter(manager=request.user).order_by("-created_at")[:5]
+
+    # Announcements scoped to this company or by this manager
+    announcements = Announcement.objects.filter(
+        company=request.user.company
+    ) | Announcement.objects.filter(manager=request.user)
 
     return render(request, "dashboards/manager_dashboard.html", {
         "team_members": team_members,
         "team_devices_count": team_devices.count(),
         "team_alerts": team_alerts,
         "tasks": tasks,
-        "announcements": announcements,
+        "announcements": announcements.order_by("-created_at")[:5],
     })
+
 
 
 # ----------------
@@ -74,10 +129,17 @@ def manager_dashboard(request):
 # ----------------
 @login_required
 def employee_dashboard(request):
-    tasks = Task.objects.filter(assigned_to=request.user).order_by("completed", "due_date")[:5]
+    # Tasks assigned to this employee
+    tasks = Task.objects.filter(
+        assigned_to=request.user
+    ).order_by("completed", "due_date")[:5]
+
+    # Company-wide announcements + those from their manager (if set)
     announcements = Announcement.objects.filter(
         company=request.user.company, scope="company"
-    ) | Announcement.objects.filter(manager=request.user.manager)
+    )
+    if hasattr(request.user, "manager") and request.user.manager:
+        announcements |= Announcement.objects.filter(manager=request.user.manager)
 
     return render(request, "dashboards/employee_dashboard.html", {
         "tasks": tasks,
@@ -105,7 +167,7 @@ from django.contrib import messages
 @company_admin_required
 def admin_license(request):
     license = License.objects.filter(company=request.user.company).first()
-    return render(request, "admin/license.html", {"license": license})
+    return render(request, "companies/admin/license.html", {"license": license})
 
 
 @login_required

@@ -124,3 +124,16 @@ class Task(models.Model):
         abstract = False
         managed = True
         db_table = 'company_tasks'
+
+
+class SecuritySetting(models.Model):
+    company = models.OneToOneField(
+        Company, on_delete=models.CASCADE, related_name="security_settings"
+    )
+    mfa_required = models.BooleanField(default=False)
+    password_min_length = models.PositiveIntegerField(default=8)
+    session_timeout_minutes = models.PositiveIntegerField(default=30)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Security settings for {self.company.name}"

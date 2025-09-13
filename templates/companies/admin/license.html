@@ -1,6 +1,10 @@
-{% extends "dashboard_base.html" %}
+{% extends "user_base.html" %}
+
+{% block title %}Company License Management{% endblock %}
+
+
 {% block content %}
-<div class="container">
+<div class="container mt-4">
   <h2>License Management</h2>
   {% if license %}
     <p><strong>Plan:</strong> {{ license.plan }}</p>

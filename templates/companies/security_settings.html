@@ -1,0 +1,25 @@
+{% extends "user_base.html" %}
+
+{% block title %}Security Settings{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h3><i class="fas fa-shield-alt"></i> Security Settings</h3>
+    <form method="post" class="mt-3">
+        {% csrf_token %}
+        <div class="mb-3 form-check">
+            {{ form.mfa_required }} <label class="form-check-label">Require MFA for all users</label>
+        </div>
+        <div class="mb-3">
+            <label>Password Minimum Length</label>
+            {{ form.password_min_length }}
+        </div>
+        <div class="mb-3">
+            <label>Session Timeout (minutes)</label>
+            {{ form.session_timeout_minutes }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'admin_dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
