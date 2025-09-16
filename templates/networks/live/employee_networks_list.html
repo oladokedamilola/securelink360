@@ -1,0 +1,57 @@
+{% extends 'user_base.html' %}
+{% load static %}
+
+{% block title %}Join Networks - Employee{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-wifi me-2"></i>
+            Join Networks
+        </h1>
+    </div>
+
+    {% if joinable_networks %}
+    <div class="row">
+        {% for network in joinable_networks %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ network.name }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ network.description }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-{% if network.visibility == 'public' %}info{% else %}primary{% endif %} me-2">
+                            {{ network.visibility }}
+                        </span>
+                        <span class="badge bg-secondary">
+                            {{ network.memberships.count }} members
+                        </span>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{% url 'network_join' network.id %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i> Join Network
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Created {{ network.created_at|date:"M d, Y" }}</small>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+        <h5>No networks available to join</h5>
+        <p class="text-muted">You're already a member of all available networks in your company.</p>
+        <a href="{% url 'employee_my_networks' %}" class="btn btn-outline-primary">
+            <i class="fas fa-layer-group me-1"></i> View My Networks
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

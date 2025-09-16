@@ -2,7 +2,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import manager_required
-from .models import Network, NetworkMembership, UnauthorizedAttempt
+from .models import Network, NetworkMembership
 from alerts.models import IntruderLog
 from .models import JoinRequest
 from notifications.utils import create_notification
@@ -26,7 +26,7 @@ def team_unauthorized_attempts(request):
         memberships__user=request.user,
         memberships__role="manager"
     )
-    attempts = UnauthorizedAttempt.objects.filter(
+    attempts = IntruderLog.objects.filter(
         network__in=networks
     ).select_related("network", "user")
 

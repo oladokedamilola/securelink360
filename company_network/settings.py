@@ -42,7 +42,8 @@ SESSION_ENGINE = config(
     "SESSION_ENGINE",
     default="django.contrib.sessions.backends.db"
 )
-SESSION_COOKIE_AGE = config("SESSION_COOKIE_AGE", cast=int, default=600)  # 10 min
+SESSION_COOKIE_NAME = "sessionid"
+SESSION_COOKIE_AGE = config("SESSION_COOKIE_AGE", cast=int, default=3600)  # 1hr in seconds
 SESSION_SAVE_EVERY_REQUEST = config("SESSION_SAVE_EVERY_REQUEST", cast=bool, default=True)
 SESSION_EXPIRE_AT_BROWSER_CLOSE = config("SESSION_EXPIRE_AT_BROWSER_CLOSE", cast=bool, default=True)
 
@@ -97,16 +98,34 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+
+    "accounts.middleware.session_expired_middleware.SessionExpiredMiddleware",
 ]
+
+
 # MIDDLEWARE += [
 #     "accounts.middleware.company_license.CompanyLicenseMiddleware",
 #     "accounts.middleware.company_scope.CompanyAccessMiddleware",
 # ]
 
+
+from django.contrib.messages import constants as messages
+
+MESSAGE_TAGS = {
+    messages.DEBUG: 'secondary',
+    messages.INFO: 'info',
+    messages.SUCCESS: 'success',
+    messages.WARNING: 'warning',
+    messages.ERROR: 'danger',
+}
+
+
+
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer"
-    }
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -146,13 +165,21 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+
+                 "accounts.context_processors.profile_edit_form",
+                 'networks.context_processors.network_requests_count', 
+                 'networks.context_processors.unread_notifications_count', 
             ],
         },
     },
 ]
 
 WSGI_APPLICATION = 'company_network.wsgi.application'
-ASGI_APPLICATION = "company_network.asgi.application"
+
+
+ASGI_APPLICATION = 'company_network.asgi.application'
+
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
@@ -196,11 +223,24 @@ USE_I18N = True
 USE_TZ = True
 
 
+# Authentication settings
+LOGIN_URL = '/auth/login/'  # login URL
+LOGIN_REDIRECT_URL = '/'    # Where to redirect after successful login
+LOGOUT_REDIRECT_URL = '/'   # Where to redirect after logout
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
+# Static files
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # for collectstatic in production
+
+# Media files (user uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

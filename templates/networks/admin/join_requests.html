@@ -1,0 +1,201 @@
+{% extends "user_base.html" %}
+{% load static %}
+
+{% block title %}Join Requests - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-user-clock me-2"></i>
+            Join Requests
+        </h1>
+        <span class="badge bg-warning fs-6">
+            {{ requests.count }} Pending Request{{ requests.count|pluralize }}
+        </span>
+    </div>
+
+    {% if requests %}
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Pending Join Requests</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Requester</th>
+                            <th>Role</th>
+                            <th>Network</th>
+                            <th>Device</th>
+                            <th>IP Address</th>
+                            <th>Requested</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if req.user.profile_image %}
+                                    <img src="{{ req.user.profile_image.url }}" alt="{{ req.user.email }}" 
+                                         class="rounded-circle me-2" width="32" height="32">
+                                    {% else %}
+                                    <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                         style="width: 32px; height: 32px;">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <strong>{{ req.user.get_full_name|default:req.user.email }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ req.user.email }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if req.user.role == 'admin' %}danger{% elif req.user.role == 'manager' %}info{% else %}secondary{% endif %}">
+                                    {{ req.user.get_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <strong>{{ req.network.name }}</strong>
+                                <br>
+                                <small class="text-muted">{{ req.network.description|truncatewords:5 }}</small>
+                            </td>
+                            <td>
+                                {% if req.device %}
+                                <div>
+                                    <strong>{{ req.device.name|default:"Unnamed Device" }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ req.device.mac_address }}</small>
+                                    <br>
+                                    <small class="text-muted">IP: {{ req.device.ip_address|default:"N/A" }}</small>
+                                </div>
+                                {% else %}
+                                <span class="text-muted">No device specified</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code>{{ req.ip_address|default:"N/A" }}</code>
+                            </td>
+                            <td>
+                                {{ req.created_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ req.created_at|time }}</small>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <form method="post" action="{% url 'admin_approve_join_request' req.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-success" 
+                                                title="Approve this request">
+                                            <i class="fas fa-check"></i> Approve
+                                        </button>
+                                    </form>
+                                    <form method="post" action="{% url 'admin_reject_join_request' req.id %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-danger" 
+                                                title="Reject this request"
+                                                onclick="return confirm('Are you sure you want to reject this join request?')">
+                                            <i class="fas fa-times"></i> Reject
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+        <h4>No pending join requests</h4>
+        <p class="text-muted">All join requests have been processed.</p>
+        <a href="{% url 'admin_company_networks' %}" class="btn btn-primary">
+            <i class="fas fa-network-wired me-1"></i> Manage Networks
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Recently Processed Requests -->
+    {% if processed_requests %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Recently Processed Requests</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Requester</th>
+                            <th>Network</th>
+                            <th>Status</th>
+                            <th>Processed</th>
+                            <th>By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in processed_requests|slice:":5" %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if req.user.profile_image %}
+                                    <img src="{{ req.user.profile_image.url }}" alt="{{ req.user.email }}" 
+                                         class="rounded-circle me-2" width="24" height="24">
+                                    {% endif %}
+                                    <span>{{ req.user.get_full_name|default:req.user.email }}</span>
+                                </div>
+                            </td>
+                            <td>{{ req.network.name }}</td>
+                            <td>
+                                {% if req.status == "approved" %}
+                                <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ req.decided_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ req.decided_at|time }}</small>
+                            </td>
+                            <td>
+                                {% if req.decided_by %}
+                                {{ req.decided_by.get_full_name|default:req.decided_by.email }}
+                                {% else %}
+                                <span class="text-muted">System</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation for reject actions
+    const rejectButtons = document.querySelectorAll('form button.btn-danger');
+    rejectButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            if (!confirm('Are you sure you want to reject this join request?')) {
+                e.preventDefault();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

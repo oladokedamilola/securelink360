@@ -4,7 +4,8 @@ from . import views
 from accounts import views as account_views
 from alerts import views as alerts_views
 from notifications.views import my_notifications
-
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('auth/', include('accounts.urls')),
@@ -12,6 +13,7 @@ urlpatterns = [
     path("company/", include("companies.urls")),
     path('alerts/', include('alerts.urls')),
     path('l/', include('legacy.urls')),
+    path('legacy/', include('legacy.urls')),
     # networks/urls_admin.py -> for admin
     path("n/admin/", include("networks.urls_admin")),
 
@@ -22,8 +24,8 @@ urlpatterns = [
     path("n/employee/", include("networks.urls_employee")),
 
     # networks/urls_visual.py -> live networks
-    path("n/live/", include("networks.urls_visual")),
-
+    path('n/live/', include('networks.urls_visual')),  # For HTTP route
+    path('n/live/api/mark-intruders-read/', views.mark_intruders_read, name='mark_intruders_read'),
     path("requests/", include("networks.urls_requests")),  # join requests
 
 
@@ -42,14 +44,17 @@ urlpatterns = [
     path("admin/dashboard/", views.admin_dashboard, name="admin_dashboard"),
     path("admin/dashboard/license/", views.admin_license, name="admin_license"),
     path("admin/dashboard/devices/", views.admin_devices, name="admin_devices"),
+    path("admin/dashboard/devices/<int:device_id>/block/", views.block_device, name="block_device"),
     path("admin/dashboard/alerts/", views.admin_alerts, name="admin_alerts"),
     path("admin/dashboard/users/", account_views.user_management, name="user_management"),
     path("admin/dashboard/invite/", account_views.send_invite, name="send_invite"),
     path("admin/dashboard/users/<int:user_id>/edit/", account_views.edit_user, name="edit_user"),
     path("admin/dashboard/users/<int:user_id>/deactivate/", account_views.deactivate_user, name="deactivate_user"),
+    
     path("admin/dashboard/invite/<int:invite_id>/resend/", account_views.resend_invite, name="resend_invite"),
     path("admin/dashboard/invite/<int:invite_id>/revoke/", account_views.revoke_invite, name="revoke_invite"),
-    path("invites/accept/<int:token>/", account_views.accept_invite, name="accept_invite"),
+    path("invites/accept/<uuid:token>/", account_views.accept_invite, name="accept_invite"),
+    
     path("create/", views.create_announcement, name="create_announcement"),
     path("alerts/", alerts_views.alert_list, name="alert_list"),
     
@@ -79,7 +84,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
-
+# Serve media files only in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # # project/urls.py
 # from django.urls import path, include

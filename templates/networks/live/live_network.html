@@ -1,171 +1,211 @@
 {% extends "user_base.html" %}
 {% load static %}
-{% block title %}Live Network — {{ network.name }}{% endblock %}
+
+{% block title %}Live Monitor - {{ network.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.23.0/cytoscape.min.js"></script>
+<style>
+    /* Network Visualization - Dark Theme Only */
+    #cy {
+        width: 100%;
+        height: 600px;
+        border: 1px solid #444;
+        border-radius: 0.375rem;
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Node Animations */
+    @keyframes blink-online {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.05); }
+    }
+    @keyframes blink-pending {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.6; transform: scale(1.1); }
+    }
+    @keyframes blink-intruder {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        25% { opacity: 0.8; transform: scale(1.1); }
+        50% { opacity: 0.6; transform: scale(1.2); }
+        75% { opacity: 0.8; transform: scale(1.1); }
+    }
+    @keyframes pulse {
+        0% { filter: drop-shadow(0 0 2px rgba(25, 135, 84, 0.8)); }
+        50% { filter: drop-shadow(0 0 6px rgba(25, 135, 84, 0.4)); }
+        100% { filter: drop-shadow(0 0 2px rgba(25, 135, 84, 0.8)); }
+    }
+
+    /* Cytoscape Style Overrides for Dark Theme */
+    .cy-node {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        font-size: 7px;
+        font-weight: bold;
+        color: white;
+        text-outline: 1px black;
+    }
+    .status-online { 
+        background-color: #198754;
+        animation: blink-online 2s infinite, pulse 3s infinite;
+    }
+    .status-offline { 
+        background-color: #6c757d;
+        opacity: 0.6;
+    }
+    .status-pending { 
+        background-color: #ffc107;
+        color: #000;
+        animation: blink-pending 1.5s infinite;
+    }
+    .status-intruder { 
+        background-color: #dc3545;
+        animation: blink-intruder 0.8s infinite;
+    }
+
+    /* Edge Styling for Dark Background */
+    .cy-edge {
+        width: 1.5px;
+        line-color: rgba(255, 255, 255, 0.3);
+        target-arrow-color: rgba(255, 255, 255, 0.3);
+        target-arrow-shape: triangle;
+        opacity: 0.6;
+    }
+
+    /* Custom scrollbar for visualization area only */
+    #cy ::-webkit-scrollbar { width: 6px; }
+    #cy ::-webkit-scrollbar-track { background: #2d2d2d; }
+    #cy ::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
+    #cy ::-webkit-scrollbar-thumb:hover { background: #777; }
+
+    /* Notification badges */
+    .notification-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+    }
+
+    /* Alert items */
+    .alert-item { border-left: 4px solid transparent; cursor: pointer; transition: all 0.2s ease; }
+    .alert-item:hover { background-color: #f8f9fa; transform: translateX(2px); }
+    .alert-item.join-request { border-left-color: #ffc107; }
+    .alert-item.intruder-alert { border-left-color: #dc3545; }
+
+    /* Card styling for visualization container */
+    .card .card-body {
+        padding: 0;
+        background: transparent;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container-fluid mt-5">
-  <h2 class="mb-3">Live Network — {{ network.name }}</h2>
+<div class="container-fluid py-4 mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-radar me-2"></i>
+            Live Monitor: {{ network.name }}
+        </h1>
+        <div>
+            <button class="btn btn-outline-secondary me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#notificationsOffcanvas">
+                <i class="fas fa-bell"></i>
+                Alerts <span id="alert-badge" class="badge bg-danger notification-badge d-none">0</span>
+            </button>
+            <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas" data-bs-target="#controlOffcanvas">
+                <i class="fas fa-cog"></i> Controls
+            </button>
+        </div>
+    </div>
 
-  <audio id="notifSound" preload="auto">
-    <source src="{% static 'audio/alert.mp3' %}" type="audio/mpeg">
-  </audio>
+    <!-- Visualization -->
+    <div class="card mb-3">
+        <div class="card-body p-0">
+            <div id="cy"></div>
+        </div>
+    </div>
 
-  <div id="graph" style="height: 70vh; background: #0f1115; border-radius: 12px;"></div>
+    <!-- Notifications Offcanvas Sidebar -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="notificationsOffcanvas">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Network Alerts & Requests</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <ul class="nav nav-tabs" id="alertTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests-tab-pane" type="button" role="tab">
+                        Join Requests <span id="request-count" class="badge bg-warning ms-1">0</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="intruders-tab" data-bs-toggle="tab" data-bs-target="#intruders-tab-pane" type="button" role="tab">
+                        Intrusion Alerts <span id="intruder-count" class="badge bg-danger ms-1">0</span>
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content mt-3" id="alertTabsContent">
+                <div class="tab-pane fade show active" id="requests-tab-pane" role="tabpanel">
+                    <div id="join-requests-list" class="list-group"></div>
+                </div>
+                <div class="tab-pane fade" id="intruders-tab-pane" role="tabpanel">
+                    <div id="intruder-alerts-list" class="list-group"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-  <div class="mt-3">
-    <button id="ackBtn" class="btn btn-success btn-sm d-none">Acknowledge Intruder</button>
-    <button id="escBtn" class="btn btn-warning btn-sm d-none">Escalate</button>
-  </div>
+    <!-- Control Panel Offcanvas -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="controlOffcanvas">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Session Controls</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="d-grid gap-2">
+                <button id="refresh-network-btn" class="btn btn-outline-primary">
+                    <i class="fas fa-sync-alt me-1"></i> Refresh Network
+                </button>
+            </div>
+            <div class="mt-4">
+                <h6>Session Status</h6>
+                <div id="session-status" class="alert alert-info">
+                    <i class="fas fa-info-circle me-1"></i> Session not started
+                </div>
+            </div>
+            <div class="mt-3">
+                <h6>Network Info</h6>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Network Name:</span>
+                        <strong>{{ network.name }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Visibility:</span>
+                        <span class="badge bg-{% if network.visibility == 'public' %}info{% else %}primary{% endif %}">
+                            {{ network.visibility }}
+                        </span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between">
+                        <span>Total Members:</span>
+                        <strong>{{ network.memberships.count }}</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-(function(){
-  const networkId = {{ network.id }};
-  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
-  const socket = new WebSocket(`${wsScheme}://${window.location.host}/ws/network/${networkId}/`);
-  const notifSound = document.getElementById("notifSound");
-
-  // --- D3 Graph Setup ---
-  // Minimal example; swap in Cytoscape if you prefer.
-  let nodes = [];
-  let links = [];
-  let intruderSelectedId = null;
-
-  const width = document.getElementById("graph").clientWidth;
-  const height = document.getElementById("graph").clientHeight;
-
-  const svg = d3.select("#graph").append("svg")
-      .attr("width", "100%")
-      .attr("height", "100%");
-
-  const linkGroup = svg.append("g");
-  const nodeGroup = svg.append("g");
-
-  const simulation = d3.forceSimulation(nodes)
-      .force("link", d3.forceLink(links).distance(120).id(d => d.id))
-      .force("charge", d3.forceManyBody().strength(-180))
-      .force("center", d3.forceCenter(width/2, height/2));
-
-  function redraw(){
-    const link = linkGroup.selectAll("line").data(links, d => `${d.source.id}-${d.target.id}`);
-    link.exit().remove();
-    link.enter().append("line").attr("stroke", "#444").attr("stroke-width", 1.2);
-
-    const node = nodeGroup.selectAll("g").data(nodes, d => d.id);
-    node.exit().remove();
-    const nodeEnter = node.enter().append("g").call(drag(simulation));
-    nodeEnter.append("circle")
-      .attr("r", d => d.type === "intruder" ? 12 : 10)
-      .attr("fill", d => colorFor(d.type))
-      .attr("class", d => d.type === "intruder" ? "intruder-node" : "")
-      .on("click", d => onNodeClick(d));
-    nodeEnter.append("title").text(d => d.label);
-    nodeEnter.append("text")
-      .text(d => d.short || d.label)
-      .attr("x", 14).attr("y", 4)
-      .attr("fill", "#9fb3c8").style("font-size", "12px");
-
-    simulation.nodes(nodes).on("tick", () => {
-      nodeGroup.selectAll("g").attr("transform", d => `translate(${d.x},${d.y})`);
-      linkGroup.selectAll("line")
-        .attr("x1", d => d.source.x)
-        .attr("y1", d => d.source.y)
-        .attr("x2", d => d.target.x)
-        .attr("y2", d => d.target.y);
-    });
-    simulation.force("link").links(links);
-    simulation.alpha(0.8).restart();
-  }
-
-  function colorFor(type){
-    if (type === "user") return "#00BCD4";
-    if (type === "device") return "#8BC34A";
-    if (type === "intruder") return "#FF5252";
-    return "#9E9E9E";
-  }
-  function drag(sim){
-    function dragstarted(event, d){ if (!event.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; }
-    function dragged(event, d){ d.fx = event.x; d.fy = event.y; }
-    function dragended(event, d){ if (!event.active) sim.alphaTarget(0); d.fx = null; d.fy = null; }
-    return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
-  }
-  function onNodeClick(datum){
-    if(datum.type === "intruder"){
-      intruderSelectedId = datum.attempt_id;
-      document.getElementById("ackBtn").classList.remove("d-none");
-      document.getElementById("escBtn").classList.remove("d-none");
-    }
-  }
-  function ensureNode(id, data){
-    const idx = nodes.findIndex(n => n.id === id);
-    if (idx === -1) nodes.push(data); else nodes[idx] = { ...nodes[idx], ...data };
-  }
-
-  socket.onmessage = (evt) => {
-    const msg = JSON.parse(evt.data);
-    if (msg.type === "snapshot"){
-      // Build initial graph
-      (msg.nodes.users || []).forEach(u => {
-        ensureNode(`user-${u.user_id}`, {id:`user-${u.user_id}`, type:"user", label:u.user__email, short:u.user__email.split("@")[0]});
-      });
-      (msg.nodes.devices || []).forEach(d => {
-        ensureNode(`device-${d.id}`, {id:`device-${d.id}`, type:"device", label:`${d.name} (${d.ip_address})`});
-      });
-      (msg.nodes.intruders || []).forEach(i => {
-        ensureNode(`intruder-${i.id}`, {id:`intruder-${i.id}`, type:"intruder", label:`${i.mac_address||'unknown'} / ${i.ip_address||''}`, attempt_id:i.id, blink:true});
-      });
-      redraw();
-    }
-
-    if (msg.type === "intruder_detected"){
-      // play sound + add node blinking
-      try { notifSound.currentTime = 0; notifSound.play(); } catch(e){}
-      ensureNode(`intruder-${msg.attempt_id}`, {
-        id:`intruder-${msg.attempt_id}`,
-        type:"intruder",
-        label:`${msg.mac_address||'unknown'} / ${msg.ip_address||''}`,
-        attempt_id: msg.attempt_id,
-        blink: true
-      });
-      redraw();
-      blinkIntruders();
-    }
-
-    if (msg.type === "membership_updated"){
-      ensureNode(`user-${msg.user_id}`, {id:`user-${msg.user_id}`, type:"user", label:`User ${msg.user_id}`});
-      redraw();
-    }
-
-    if (msg.type === "join_request_updated"){
-      // could add a “pending badge” on user node, or color pulse
-    }
-  };
-
-  socket.onclose = () => {
-    console.warn("WebSocket closed");
-  };
-
-  // Blink intruder nodes
-  function blinkIntruders(){
-    const nodesSel = svg.selectAll(".intruder-node");
-    nodesSel
-      .transition().duration(700).attr("opacity", 0.3)
-      .transition().duration(700).attr("opacity", 1.0)
-      .on("end", blinkIntruders);
-  }
-
-  // Actions
-  document.getElementById("ackBtn").addEventListener("click", ()=> {
-    if (!intruderSelectedId) return;
-    socket.send(JSON.stringify({action:"acknowledge_intruder", attempt_id: intruderSelectedId}));
-  });
-  document.getElementById("escBtn").addEventListener("click", ()=> {
-    if (!intruderSelectedId) return;
-    const note = prompt("Escalation note:");
-    socket.send(JSON.stringify({action:"escalate_intruder", attempt_id: intruderSelectedId, note}));
-  });
-})();
+    const NETWORK_ID = "{{ network.id }}";
+    const NETWORK_NAME = "{{ network.name }}";
+    const USER_EMAIL = "{{ user.email }}";
+    const CSRF_TOKEN = "{{ csrf_token }}";
 </script>
-
-<!-- D3 -->
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="{% static 'js/network_live.js' %}"></script>
 {% endblock %}

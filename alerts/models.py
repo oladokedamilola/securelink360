@@ -1,15 +1,19 @@
 # alerts/models.py
 from django.db import models
 from django.conf import settings
-from django.db import models
-from django.conf import settings
 
 class IntruderLog(models.Model):
-    # If we can map the intruder to an existing device, keep link
+    network = models.ForeignKey(  # ✅ NEW
+        "networks.Network",
+        on_delete=models.CASCADE,
+        related_name="intruder_logs",
+        null=True,
+        blank=True,
+        help_text="Network where the intruder attempt occurred",
+    )
     device = models.ForeignKey(
         "devices.Device", on_delete=models.SET_NULL, null=True, blank=True, related_name="intruder_logs"
     )
-    # Who attempted (if known, null otherwise)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     mac_address = models.CharField(max_length=17, null=True, blank=True)
@@ -18,6 +22,7 @@ class IntruderLog(models.Model):
     note = models.TextField(blank=True)
 
     def __str__(self):
-        device_str = self.device.mac_address if self.device else (self.mac_address or "unknown")
-        return f"Intruder {device_str} @ {self.detected_at}"
-
+        identifier = (
+            self.device.mac_address if self.device else self.mac_address or self.ip_address or "unknown"
+        )
+        return f"Intruder {identifier} on {self.network or 'No Network'} @ {self.detected_at}"

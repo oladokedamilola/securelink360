@@ -1,0 +1,80 @@
+{% extends "user_base.html" %}
+{% load static %}
+
+{% block title %}Cancel Join Request{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-times-circle me-2 text-danger"></i>
+                        Cancel Join Request
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> You are about to cancel your join request.
+                    </div>
+
+                    <div class="mb-4">
+                        <h6>Request Details</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong>Network:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        {{ request_obj.network.name }}
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Requested:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        {{ request_obj.created_at|date:"M d, Y H:i" }}
+                                    </div>
+                                </div>
+                                {% if request_obj.device %}
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong>Device:</strong>
+                                    </div>
+                                    <div class="col-6">
+                                        {{ request_obj.device.name }} ({{ request_obj.device.mac_address }})
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="reason" class="form-label">Reason for cancellation (optional):</label>
+                            <textarea name="reason" id="reason" class="form-control" rows="3" 
+                                      placeholder="Why are you cancelling this request?"></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-times me-1"></i> Confirm Cancellation
+                            </button>
+                            <a href="{% url 'employee_join_requests' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Go Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

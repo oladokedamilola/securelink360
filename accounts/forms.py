@@ -33,12 +33,12 @@ class AdminRegistrationForm(BootstrapFormMixin, UserCreationForm):
     password1 = forms.CharField(
         label="Password",
         strip=False,
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Enter password"}),
+        widget=forms.PasswordInput(attrs={"placeholder": "Enter password"}),
     )
     password2 = forms.CharField(
         label="Confirm Password",
         strip=False,
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Confirm password"}),
+        widget=forms.PasswordInput(attrs={"placeholder": "Confirm password"}),
     )
 
     class Meta:
@@ -99,4 +99,7 @@ class EditUserForm(BootstrapFormMixin, forms.ModelForm):
         fields = ["email", "role", "is_active"]
 
 
-
+class ProfileEditForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "profile_image"]  # Exclude email

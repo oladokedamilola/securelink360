@@ -55,14 +55,9 @@ The system enforces **seat-based licensing**, provides **real-time notifications
 - Events streamed live via WebSockets.
 - Admin/Managers can acknowledge or escalate alerts.
 
-### 🎨 UI & UX
-- Responsive sidebar with **mobile-first design**.
-- **Light/Dark mode toggle**.
-- Company dashboards with clean charts and tables.
 
 ---
 
-## ⚙ Installation
 
 ### Requirements
 - Python 3.10+
@@ -71,32 +66,6 @@ The system enforces **seat-based licensing**, provides **real-time notifications
 - Redis (for WebSockets layer)
 - Bootstrap 5.x
 - PostgreSQL/MySQL (production)
-
-### Local Setup
-
-```bash
-# Clone the repository
-git clone https://github.com/oladokedamilola/securelink360.git
-cd securelink360
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set up database
-python manage.py migrate
-
-# Create superuser
-python manage.py createsuperuser
-
-# Run development server
-python manage.py runserver
-````
-
-Access the platform at `http://127.0.0.1:8000/`.
 
 ---
 

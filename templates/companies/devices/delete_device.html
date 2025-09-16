@@ -1,0 +1,26 @@
+{% extends "user_base.html" %}
+{% block title %}Delete Device{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3 text-danger">Delete Device</h2>
+
+  <div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle"></i>
+    Are you sure you want to delete <strong>{{ device.name }}</strong>
+    (MAC: {{ device.mac_address }}, IP: {{ device.ip_address }})?
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="d-flex justify-content-between">
+      <a href="{% url 'my_devices' %}" class="btn btn-secondary">
+        <i class="bi bi-x-circle"></i> Cancel
+      </a>
+      <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash"></i> Confirm Delete
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

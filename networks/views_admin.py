@@ -2,12 +2,12 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.decorators import company_admin_required
-from .models import Network, NetworkMembership, UnauthorizedAttempt
+from .models import Network, NetworkMembership
 from .forms import NetworkForm
 from alerts.models import IntruderLog
 from django.http import HttpResponse
 import csv
-
+from django.utils import timezone
 # 🔔 Notifications util
 from notifications.utils import create_notification
 from .models import JoinRequest  
@@ -84,7 +84,7 @@ def delete_network(request, network_id):
 @login_required
 @company_admin_required
 def unauthorized_attempts(request):
-    attempts = UnauthorizedAttempt.objects.filter(
+    attempts = IntruderLog.objects.filter(
         network__company=request.user.company
     ).select_related("network", "user")
     return render(request, "networks/admin/unauthorized_attempts.html", {"attempts": attempts})
@@ -137,8 +137,22 @@ def export_intruder_logs_csv(request):
 @login_required
 @company_admin_required
 def join_requests(request):
-    requests = JoinRequest.objects.filter(network__company=request.user.company, status="pending").select_related("user", "network")
-    return render(request, "networks/admin/join_requests.html", {"requests": requests})
+    # Pending requests with all related data
+    pending_requests = JoinRequest.objects.filter(
+        network__company=request.user.company, 
+        status="pending"
+    ).select_related("user", "network", "device")
+    
+    # Recently processed requests (last 10)
+    processed_requests = JoinRequest.objects.filter(
+        network__company=request.user.company,
+        status__in=["approved", "rejected"]
+    ).select_related("user", "network", "device", "decided_by").order_by("-decided_at")[:10]
+    
+    return render(request, "networks/admin/join_requests.html", {
+        "requests": pending_requests,
+        "processed_requests": processed_requests
+    })
 
 
 @login_required
@@ -146,16 +160,33 @@ def join_requests(request):
 def approve_join_request(request, request_id):
     jr = get_object_or_404(JoinRequest, id=request_id, network__company=request.user.company, status="pending")
     jr.status = "approved"
+    jr.decided_by = request.user
+    jr.decided_at = timezone.now()
     jr.save()
 
-    # Add user to network
-    NetworkMembership.objects.get_or_create(user=jr.user, network=jr.network)
+    # Add user to network - MAKE SURE THIS IS WORKING
+    membership, created = NetworkMembership.objects.get_or_create(
+        user=jr.user, 
+        network=jr.network,
+        defaults={
+            "role": "employee", 
+            "active": True,
+            "joined_at": timezone.now()
+        }
+    )
+    
+    print(f"DEBUG: Created membership for {jr.user.email} in {jr.network.name}. Created: {created}")  # Debug line
+
+    # Update device status if a device was specified
+    if jr.device:
+        jr.device.status = "online"
+        jr.device.save()
 
     # Notify employee
     create_notification(
         jr.user,
-        f"Your request to join '{jr.network.name}' was approved.",
-        link="/employee/my-networks/"
+        f"Your request to join '{jr.network.name}' was approved. You are now connected!",
+        link="/n/employee/my-networks/"
     )
 
     return redirect("admin_join_requests")
@@ -166,13 +197,27 @@ def approve_join_request(request, request_id):
 def reject_join_request(request, request_id):
     jr = get_object_or_404(JoinRequest, id=request_id, network__company=request.user.company, status="pending")
     jr.status = "rejected"
+    jr.decided_by = request.user  # Set who made the decision
+    jr.decided_at = timezone.now()
     jr.save()
+
+    # Update device status back to offline if a device was specified
+    if jr.device:
+        jr.device.status = "offline"
+        jr.device.save()
 
     # Notify employee
     create_notification(
         jr.user,
         f"Your request to join '{jr.network.name}' was rejected.",
         link="/employee/join-requests/"
+    )
+
+    # Notify admin about the rejection
+    create_notification(
+        request.user,
+        f"Rejected join request from {jr.user.email} for network '{jr.network.name}'.",
+        link="/n/admin/join-requests/"
     )
 
     return redirect("admin_join_requests")
@@ -182,7 +227,6 @@ from django.shortcuts import render
 from .models import Network
 
 @login_required
-@company_admin_required
 def live_networks_list(request):
     # Only show networks for the user's company
     networks = Network.objects.filter(company=request.user.company).order_by("name")

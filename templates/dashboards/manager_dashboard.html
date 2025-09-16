@@ -32,16 +32,31 @@
   .profile-card .info h4 { margin: 0; font-size: 1.2rem; font-weight: 600; }
   .profile-card .info p { margin: 0; font-size: .9rem; color: #555; }
 
-  /* Greeting */
+  /* Onboarding widget */
   .onboarding-widget {
       background: #fff;
       border-radius: 1rem;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
       padding: 1.5rem;
       margin-bottom: 2rem;
+  }
+  .onboarding-widget h3 { font-weight: 600; color: #6A1B9A; margin-bottom: 1rem; }
+  .checklist { list-style: none; padding: 0; margin: 0 0 1rem 0; }
+  .checklist li {
+      padding: .6rem 1rem;
+      margin-bottom: .5rem;
+      border-radius: .5rem;
+      background: #f0f2f5;
+  }
+  .checklist li.done { background: #e8f5e9; color: #388e3c; font-weight: 500; }
+  .onboarding-complete {
+      padding: .75rem 1rem;
+      background: #e8f5e9;
+      border-radius: .5rem;
+      color: #2e7d32;
+      font-weight: 600;
       text-align: center;
   }
-  .onboarding-widget h3 { font-weight: 600; color: #6A1B9A; margin-bottom: .5rem; }
 
   /* Summary cards */
   .summary-cards { margin-bottom: 2rem; }
@@ -90,20 +105,69 @@
 {% block content %}
 <div class="dashboard-wrapper">
 
-  <!-- Profile Card -->
-  <div class="profile-card">
-    <div class="avatar">{{ user.first_name|first }}{{ user.last_name|first }}</div>
-    <div class="info">
-      <h4>{{ user.get_full_name }}</h4>
-      <p>{{ user.email }}</p>
-      <p><small>Role: Manager</small></p>
+<!-- Manager Profile Card -->
+<div class="card shadow rounded-4 p-3 user-card">
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle border border-3" width="80" height="80">
+            {% else %}
+                <div class="rounded-circle border border-3 d-flex align-items-center justify-content-center bg-secondary text-white"
+                     style="width:80px; height:80px; font-size:1.5rem;">
+                    {{ user.first_name|first }}{{ user.last_name|first }}
+                </div>
+            {% endif %}
+        </div>
+        <div class="col">
+            <div class="d-flex align-items-center justify-content-between">
+                <h4 class="mb-3">{{ user.get_full_name|default:"Manager" }}</h4>
+                <!-- Edit Icon -->
+                <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"
+                   class="text-muted ms-2" data-bs-toggle="tooltip" title="Edit Profile">
+                    <i class="fas fa-pen"></i>
+                </a>
+            </div>
+            <div class="user-details-grid">
+                <div class="user-detail-item"><strong>Email:</strong> {{ user.email }}</div>
+                <div class="user-detail-item"><strong>Role:</strong> Manager</div>
+                <div class="user-detail-item"><strong>Status:</strong>
+                    <span class="badge bg-success">Active</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
 
-  <!-- Greeting -->
+
+  <!-- Onboarding Checklist -->
   <div class="onboarding-widget">
-      <h3>👋 Welcome back, {{ user.first_name }}!</h3>
-      <p>Here’s what’s happening with your team today.</p>
+      <h3>👋 Welcome, {{ user.first_name }}!</h3>
+
+      <!-- Progress Bar -->
+      <div class="progress mb-3" style="height: 12px;">
+          <div class="progress-bar bg-success" role="progressbar"
+               style="width: {{ onboarding.percent_complete }}%;"
+               aria-valuenow="{{ onboarding.percent_complete }}" aria-valuemin="0" aria-valuemax="100">
+              {{ onboarding.percent_complete }}%
+          </div>
+      </div>
+
+      <!-- Checklist -->
+      <ul class="checklist">
+          <li class="{% if onboarding.profile_complete %}done{% endif %}">
+              {% if onboarding.profile_complete %}✅ Profile Complete{% else %}📝 Complete Your Profile{% endif %}
+          </li>
+          <li class="{% if onboarding.device_registered %}done{% endif %}">
+              {% if onboarding.device_registered %}✅ Device Registered{% else %}💻 Register Your Device{% endif %}
+          </li>
+          <li class="{% if onboarding.mfa_enabled %}done{% endif %}">
+              {% if onboarding.mfa_enabled %}✅ MFA Enabled{% else %}🔒 Enable MFA{% endif %}
+          </li>
+      </ul>
+
+      {% if onboarding.complete %}
+          <div class="onboarding-complete">🎉 All onboarding steps complete!</div>
+      {% endif %}
   </div>
 
   <!-- Summary Cards -->

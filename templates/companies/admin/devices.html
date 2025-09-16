@@ -2,19 +2,72 @@
 
 {% block title %}Device Management{% endblock %}
 
-
 {% block content %}
 <div class="container mt-4">
-  <h2>Device Management</h2>
-  <ul class="list-group">
-    {% for device in devices %}
-      <li class="list-group-item d-flex justify-content-between align-items-center">
-        {{ device.name }} ({{ device.ip_address }})
-        <a href="#" class="btn btn-sm btn-danger">Block</a>
-      </li>
-    {% empty %}
-      <li class="list-group-item">No devices registered.</li>
-    {% endfor %}
-  </ul>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Device Management</h2>
+    <a href="{% url 'register_device' %}" class="btn btn-primary">
+      <i class="fas fa-plus me-1"></i> Register Device
+    </a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-bordered align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Name</th>
+          <th>MAC Address</th>
+          <th>IP Address</th>
+          <th>Owner</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for device in devices %}
+          <tr>
+            <td>{{ device.name|default:"(Unnamed)" }}</td>
+            <td>{{ device.mac_address }}</td>
+            <td>{{ device.ip_address|default:"-" }}</td>
+            <td>{{ device.user.get_full_name|default:device.user.email }}</td>
+            <td>{{ device.user.role|title }}</td>
+            <td>
+              {% if device.is_blocked %}
+                <span class="badge bg-danger">Blocked</span>
+              {% else %}
+                <span class="badge bg-success">Active</span>
+              {% endif %}
+            </td>
+            <td class="d-flex gap-1">
+              <!-- Update Device -->
+              <a href="{% url 'update_device' device.id %}" class="btn btn-sm btn-warning">
+                <i class="fas fa-edit"></i> Edit
+              </a>
+
+              <!-- Delete Device -->
+              <a href="{% url 'delete_device' device.id %}" class="btn btn-sm btn-danger">
+                <i class="fas fa-trash"></i> Delete
+              </a>
+
+              <!-- Block Device -->
+              {% if not device.is_blocked %}
+                <form method="post" action="{% url 'block_device' device.id %}" style="display:inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-secondary">
+                    <i class="fas fa-ban"></i> Block
+                  </button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="7" class="text-center">No devices registered.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}

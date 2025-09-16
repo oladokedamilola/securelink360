@@ -1,36 +1,90 @@
 {% extends "user_base.html" %}
+{% load static %}
 
 {% block title %}My Networks{% endblock %}
 
-
 {% block content %}
-<div class="container mt-4">
-  <h3>My Networks</h3>
-  <div class="card shadow-sm">
-    <div class="card-body p-0">
-      <table class="table mb-0">
-        <thead class="table-light">
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Role</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for membership in memberships %}
-          <tr>
-            <td>{{ membership.network.name }}</td>
-            <td>{{ membership.network.description|default:"-" }}</td>
-            <td>{{ membership.role|title }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="3" class="text-center text-muted py-3">You are not in any networks.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-layer-group me-2"></i>
+            My Networks
+        </h1>
+        <a href="{% url 'live_networks_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-wifi me-1"></i> Join More Networks
+        </a>
     </div>
-  </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Networks I'm Connected To</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if memberships %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Network Name</th>
+                            <th>Description</th>
+                            <th>Visibility</th>
+                            <th>My Role</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for membership in memberships %}
+                        <tr>
+                            <td>
+                                <strong>{{ membership.network.name }}</strong>
+                            </td>
+                            <td>
+                                {{ membership.network.description|default:"No description"|truncatewords:10 }}
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if membership.network.visibility == 'public' %}info{% elif membership.network.visibility == 'company' %}primary{% else %}secondary{% endif %}">
+                                    {{ membership.network.visibility }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if membership.role == 'admin' %}danger{% elif membership.role == 'manager' %}info{% else %}secondary{% endif %}">
+                                    {{ membership.role|title }}
+                                </span>
+                            </td>
+                            <td>
+                                {{ membership.joined_at|date:"M d, Y" }}
+                                <br>
+                                <small class="text-muted">{{ membership.joined_at|time }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">Connected</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-network-wired fa-3x text-muted mb-3"></i>
+                <h5>Not connected to any networks yet</h5>
+                <p class="text-muted">You haven't been added to any networks yet. Request to join networks or wait for approval.</p>
+                <a href="{% url 'live_networks_list' %}" class="btn btn-primary">
+                    <i class="fas fa-wifi me-1"></i> Browse Networks
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Join Requests Status -->
+    {% if pending_requests_count > 0 %}
+    <div class="alert alert-info mt-4">
+        <i class="fas fa-info-circle me-2"></i>
+        You have {{ pending_requests_count }} pending join request{{ pending_requests_count|pluralize }}. 
+        You'll be added to networks once approved.
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

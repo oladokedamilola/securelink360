@@ -1,0 +1,26 @@
+{% extends "user_base.html" %}
+{% block title %}Update Device{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">Update Device</h2>
+
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <div class="d-flex justify-content-between mt-3">
+          <a href="{% url 'my_devices' %}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back
+          </a>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

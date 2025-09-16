@@ -1,0 +1,201 @@
+{% extends 'user_base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if user.is_company_admin %}Live Network Monitoring - Admin
+    {% elif user.role == "manager" %}Available Networks - Manager
+    {% else %}Join Networks - Employee{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="fas fa-{% if user.is_company_admin %}radar{% else %}network-wired{% endif %} me-2"></i>
+            {% if user.is_company_admin %}Live Network Monitoring
+            {% elif user.role == "manager" %}Available Networks
+            {% else %}Join Networks{% endif %}
+        </h1>
+        
+        {% if user.is_company_admin %}
+        <a href="{% url 'admin_create_network' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i> Create Network
+        </a>
+        {% endif %}
+    </div>
+
+    {% if user.is_company_admin %}
+    {# --- ADMIN VIEW --- #}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Company Networks</h5>
+                </div>
+                <div class="card-body">
+                    {% if networks %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Network Name</th>
+                                    <th>Description</th>
+                                    <th>Visibility</th>
+                                    <th>Members</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for network in networks %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ network.name }}</strong>
+                                    </td>
+                                    <td>{{ network.description|truncatewords:10 }}</td>
+                                    <td>
+                                        <span class="badge bg-{% if network.visibility == 'public' %}info{% elif network.visibility == 'company' %}primary{% else %}secondary{% endif %}">
+                                            {{ network.visibility }}
+                                        </span>
+                                    </td>
+                                    <td>{{ network.memberships.count }} users</td>
+                                    <td>
+                                        <span class="badge bg-success">Active</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'live_network_monitor' network.id %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-tv me-1"></i> Monitor Live
+                                        </a>
+                                        <a href="{% url 'admin_edit_network' network.id %}" class="btn btn-outline-secondary btn-sm">
+                                            <i class="fas fa-cog me-1"></i> Settings
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-network-wired fa-3x text-muted mb-3"></i>
+                        <h5>No networks found</h5>
+                        <p class="text-muted">Create your first network to start monitoring.</p>
+                        <a href="{% url 'admin_create_network' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-1"></i> Create Network
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% elif user.role == "manager" %}
+    {# --- MANAGER VIEW --- #}
+    <div class="row">
+        {% for network in networks %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ network.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted small">{{ network.description|truncatewords:15 }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-{% if network.visibility == 'public' %}info{% else %}primary{% endif %} me-2">
+                            {{ network.visibility }}
+                        </span>
+                        <span class="badge bg-secondary">
+                            {{ network.memberships.count }} members
+                        </span>
+                    </div>
+                    
+                    {% if network in user_admin_networks %}
+                    <a href="{% url 'live_network_monitor' network.id %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-tv me-1"></i> Monitor Network
+                    </a>
+                    {% else %}
+                    <a href="{% url 'network_join' network.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i> Join Network
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No networks available</h5>
+                <p class="text-muted">There are currently no networks available to join or monitor.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    {# --- EMPLOYEE VIEW --- #}
+    <div class="row">
+        {% for network in networks %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ network.name }}</h6>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ network.description }}</p>
+                    <div class="mb-3">
+                        <span class="badge bg-{% if network.visibility == 'public' %}info{% else %}primary{% endif %} me-2">
+                            {{ network.visibility }}
+                        </span>
+                        <span class="badge bg-secondary">
+                            {{ network.memberships.count }} members
+                        </span>
+                    </div>
+                    
+                    {# Check if user has already requested to join this network #}
+                    {% with network_request=network.join_requests.all|first_with_user:user %}
+                    {% if network_request %}
+                    {# Show request status instead of join button #}
+                    <div class="d-grid">
+                        <button class="btn btn-{% if network_request.status == 'pending' %}warning{% elif network_request.status == 'approved' %}success{% else %}danger{% endif %}" disabled>
+                            <i class="fas fa-{% if network_request.status == 'pending' %}clock{% elif network_request.status == 'approved' %}check{% else %}times{% endif %} me-1"></i>
+                            {{ network_request.get_status_display }}
+                        </button>
+                        {% if network_request.status == 'pending' %}
+                        <a href="{% url 'employee_cancel_join_request' network_request.id %}" class="btn btn-outline-danger btn-sm mt-2">
+                            <i class="fas fa-times me-1"></i> Cancel Request
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% else %}
+                    {# Show join button if no request exists #}
+                    <div class="d-grid">
+                        <a href="{% url 'network_join' network.id %}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-1"></i> Join Network
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Created {{ network.created_at|date:"M d, Y" }}</small>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5>No networks available to join</h5>
+                <p class="text-muted">You're already a member of all available networks in your company.</p>
+                <a href="{% url 'employee_my_networks' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-layer-group me-1"></i> View My Networks
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

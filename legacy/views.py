@@ -3,7 +3,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils.timezone import now
 from django.views.decorators.csrf import csrf_exempt
-from networks.models import Network, UnauthorizedAttempt
+from networks.models import Network
+from alerts.models import IntruderLog
 
 # Helper to generate fake network data
 def _generate_fake_network_data(network_id):
@@ -30,35 +31,56 @@ def discovery_page(request):
     fake_networks = [_generate_fake_network_data(n.id) for n in networks]
     return render(request, "legacy/discovery.html", {"networks": fake_networks})
 
-# Intruder attempt handler
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.contrib import messages
+from django.utils import timezone
+from alerts.models import IntruderLog
+from networks.models import NetworkMembership, Network
+from notifications.utils import create_notification  # assuming you already have this
+
 @csrf_exempt
 def attempt_connect(request, network_id):
-    if request.method == "POST":
-        # Generate fake intruder MAC address
-        fake_mac = ":".join([f"{random.randint(0, 255):02x}" for _ in range(6)])
-        ip_address = request.META.get("REMOTE_ADDR", "0.0.0.0")
+    """Handle intruder connection attempts on public discovery networks."""
+    if request.method != "POST":
+        return JsonResponse({"error": "Invalid method"}, status=405)
 
-        try:
-            network = Network.objects.get(id=network_id)
-        except Network.DoesNotExist:
-            return JsonResponse({"status": "error", "message": "Network not found"}, status=404)
+    ip = request.META.get("REMOTE_ADDR")
+    ua = request.META.get("HTTP_USER_AGENT", "")
 
-        attempt = UnauthorizedAttempt.objects.create(
+    # Create intruder log entry
+    log = IntruderLog.objects.create(
+        ip_address=ip,
+        note=f"Public connection attempt on network {network_id}. UA={ua}",
+        status="Detected",
+        network_id=network_id  # 👈 ensure IntruderLog has a ForeignKey to Network
+    )
+
+    # Flash message (will show on next page load for logged-in admins)
+    messages.warning(
+        request,
+        "🚨 Intruder detected! Their attempt was blocked automatically."
+    )
+
+    # Notify admins & managers of this network
+    try:
+        network = Network.objects.get(id=network_id)
+        admins_managers = NetworkMembership.objects.filter(
             network=network,
-            user=None,
-            ip_address=ip_address,
-            mac_address=fake_mac,
-            reason="Intruder attempted via legacy discovery page",
-            created_at=now()
-        )
+            role__in=["admin", "manager"]
+        ).select_related("user")
 
-        # Notification + IntruderLog handled in UnauthorizedAttempt.save()
-        return JsonResponse({
-            "status": "denied",
-            "message": "Access Denied: Unauthorized device detected.",
-            "mac": fake_mac,
-            "ip": ip_address,
-            "network": f"Corporate-WiFi-{network.id:03}",
-        })
+        for member in admins_managers:
+            create_notification(
+                member.user,
+                f"🚨 Intruder detected on '{network.name}'. System blocked their attempt.",
+                link="/n/admin/networks/unauthorized/"  # link to unauthorized attempts page    
+            )
+    except Network.DoesNotExist:
+        pass  # safe guard if invalid network_id
 
-    return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+    return JsonResponse({
+        "status": "denied",
+        "log_id": log.id,
+        "message": "Intruder detected and blocked. Admins notified."
+    })

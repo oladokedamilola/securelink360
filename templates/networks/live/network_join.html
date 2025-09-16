@@ -1,0 +1,123 @@
+{% extends 'user_base.html' %}
+{% load static %}
+
+{% block title %}Join Network - {{ network.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4 class="card-title mb-0">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Join Network: {{ network.name }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    {% if existing_request %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        You already have a pending request to join this network.
+                        <br>
+                        <small>Status: <strong class="text-capitalize">{{ existing_request.status }}</strong></small>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-4">
+                        <h6>Network Details</h6>
+                        <p class="text-muted">{{ network.description }}</p>
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-{% if network.visibility == 'public' %}info{% else %}primary{% endif %}">
+                                {{ network.visibility }} network
+                            </span>
+                            <span class="badge bg-secondary">
+                                {{ network.memberships.count }} members
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="device-select" class="form-label fw-bold">Select Device to Connect</label>
+                        <select class="form-select" id="device-select" {% if existing_request %}disabled{% endif %}>
+                            <option value="">-- Choose your device --</option>
+                            {% for device in user_devices %}
+                            <option value="{{ device.id }}">{{ device.name }} ({{ device.mac_address }})</option>
+                            {% empty %}
+                            <option value="" disabled>No devices available</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">
+                            Select the device you want to use to connect to this network.
+                        </div>
+                    </div>
+
+                    {% if not user_devices %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        You need to register a device before you can join a network.
+                        <a href="{% url 'my_devices' %}" class="alert-link">Register a device</a>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        {% if existing_request %}
+                        <button class="btn btn-secondary" disabled>
+                            <i class="fas fa-clock me-1"></i> Request Pending
+                        </button>
+                        <a href="{% url 'employee_join_requests' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-history me-1"></i> View My Requests
+                        </a>
+                        {% else %}
+                        <button id="join-btn" class="btn btn-primary" {% if not user_devices %}disabled{% endif %}>
+                            <i class="fas fa-paper-plane me-1"></i> Send Join Request
+                        </button>
+                        {% endif %}
+                        <a href="{% url 'live_networks_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Networks
+                        </a>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <small class="text-muted">
+                        Your request will be reviewed by a network administrator.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const NETWORK_ID = "{{ network.id }}";
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const deviceSelect = document.getElementById('device-select');
+        const joinBtn = document.getElementById('join-btn');
+        
+        if (deviceSelect && joinBtn) {
+            deviceSelect.addEventListener('change', function() {
+                joinBtn.disabled = !this.value;
+            });
+            
+            joinBtn.addEventListener('click', function() {
+                const deviceId = deviceSelect.value;
+                if (deviceId) {
+                    // Show loading state
+                    joinBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Sending Request...';
+                    joinBtn.disabled = true;
+                    
+                    // Here you would typically make an AJAX request or WebSocket connection
+                    // For now, we'll simulate a successful request
+                    setTimeout(() => {
+                        alert('Join request sent successfully! You will be notified when approved.');
+                        window.location.reload();
+                    }, 1000);
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

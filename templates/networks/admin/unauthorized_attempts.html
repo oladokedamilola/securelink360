@@ -15,9 +15,6 @@
             <th>Network</th>
             <th>User</th>
             <th>IP</th>
-            <th>MAC</th>
-            <th>Reason</th>
-            <th>Timestamp</th>
           </tr>
         </thead>
         <tbody>
@@ -26,9 +23,6 @@
             <td>{{ attempt.network.name }}</td>
             <td>{% if attempt.user %}{{ attempt.user.email }}{% else %}<span class="text-danger">Unknown</span>{% endif %}</td>
             <td>{{ attempt.ip_address|default:"-" }}</td>
-            <td>{{ attempt.mac_address|default:"-" }}</td>
-            <td>{{ attempt.reason }}</td>
-            <td>{{ attempt.created_at|date:"Y-m-d H:i" }}</td>
           </tr>
           {% empty %}
           <tr>

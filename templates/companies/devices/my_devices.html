@@ -1,0 +1,56 @@
+{% extends "user_base.html" %}
+{% block title %}My Devices{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">My Registered Devices</h2>
+  
+  <a href="{% url 'register_device' %}" class="btn btn-primary mb-3">
+    <i class="bi bi-plus-circle"></i> Register New Device
+  </a>
+
+  {% if devices %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>MAC Address</th>
+        <th>IP Address</th>
+        <th>Registered</th>
+        {% comment %} <th>Last Seen</th> {% endcomment %}
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for device in devices %}
+      <tr>
+        <td>{{ device.name }}</td>
+        <td>{{ device.mac_address }}</td>
+        <td>{{ device.ip_address }}</td>
+        <td>{{ device.registered_at|date:"Y-m-d H:i" }}</td>
+        {% comment %} <td>{{ device.last_seen|default:"Never" }}</td> {% endcomment %}
+        <td>
+          {% if device.is_blocked %}
+            <span class="badge bg-danger">Blocked</span>
+          {% else %}
+            <span class="badge bg-success">Active</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{% url 'update_device' device.pk %}" class="btn btn-sm btn-warning">
+            <i class="bi bi-pencil"></i> Edit
+          </a>
+          <a href="{% url 'delete_device' device.pk %}" class="btn btn-sm btn-danger">
+            <i class="bi bi-trash"></i> Delete
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p>No devices registered yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

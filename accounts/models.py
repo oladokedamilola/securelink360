@@ -7,7 +7,7 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from companies.models import Company
-
+from django.core.validators import FileExtensionValidator
 
 class CustomUserManager(BaseUserManager):
     """Manager where email is the unique identifier for authentication"""
@@ -38,7 +38,6 @@ class User(AbstractUser):
     class Roles(models.TextChoices):
         ADMIN = "admin", _("Admin")
         MANAGER = "manager", _("Manager")
-        VIEWER = "viewer", _("Viewer")
         EMPLOYEE = "employee", _("Employee")
 
     username = None  # we don’t need the username field
@@ -56,6 +55,12 @@ class User(AbstractUser):
         choices=Roles.choices,
         default=Roles.EMPLOYEE
     )
+    profile_image = models.ImageField(
+        upload_to="profile_images/",
+        null=True,
+        blank=True,
+        validators=[FileExtensionValidator(allowed_extensions=["jpg", "jpeg", "png"])],
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []  # removes username from createsuperuser
@@ -68,8 +73,8 @@ class User(AbstractUser):
     def is_manager(self):
         return self.role == self.Roles.MANAGER
 
-    def is_viewer(self):
-        return self.role == self.Roles.VIEWER
+    def is_employee(self):
+        return self.role == self.Roles.EMPLOYEE
 
 
 class UserInvite(models.Model):

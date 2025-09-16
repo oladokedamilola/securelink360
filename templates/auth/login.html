@@ -4,6 +4,19 @@
 {% block title %}Login{% endblock %}
 
 {% block content %}
+<style>
+  .form-errors {
+    color: #dc3545; /* Bootstrap danger red */
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid #f5c2c7;
+    background-color: #f8d7da;
+    border-radius: 0.5rem;
+}
+
+</style>
 <div class="min-vh-100 d-flex align-items-center justify-content-center bg-light">
   <div class="card shadow-lg rounded-4 border-0 w-100" style="max-width: 500px; margin-top: -50px;">
     <div class="card-body p-4">
@@ -11,7 +24,12 @@
 
       <form method="post" novalidate>
         {% csrf_token %}
-        {{ form.non_field_errors }}
+        {% if form.non_field_errors %}
+          <div class="form-errors">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
 
         <!-- Email -->
         <div class="mb-3">
@@ -37,9 +55,9 @@
           <div class="invalid-feedback d-block">
             {{ form.password.errors }}
           </div>
-          <div class="text-end mt-1">
+          {% comment %} <div class="text-end mt-1">
             <a href="#" class="small text-decoration-none">Forgot password?</a>
-          </div>
+          </div> {% endcomment %}
         </div>
 
         <!-- Submit -->

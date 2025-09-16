@@ -45,15 +45,19 @@ def register(request):
             )
 
             login(request, user)
-            messages.success(request, f"Welcome to SecureLink360, {company_name}!")
+            messages.success(request, f"Welcome to SecureLink360, {company_name}! Your admin account has been created.")
             return redirect("admin_dashboard")
+        else:
+            # Invalid registration form
+            messages.error(request, "Please correct the errors below and try again.")
     else:
         form = AdminRegistrationForm()
+
     return render(request, "auth/register.html", {"form": form})
 
 
 # ---------------------------
-# Login (function-based)
+# Login
 # ---------------------------
 def custom_login(request):
     if request.method == "POST":
@@ -61,8 +65,9 @@ def custom_login(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+            messages.success(request, f"Welcome back, {user.get_full_name() or user.email}!")
 
-            # If Django superuser → go to Django admin panel
+            # Redirect superuser to Django admin
             if user.is_superuser:
                 return redirect(reverse("admin:index"))
 
@@ -72,6 +77,9 @@ def custom_login(request):
             elif user.role == User.Roles.MANAGER:
                 return redirect("manager_dashboard")
             return redirect("employee_dashboard")
+        else:
+            # Invalid login attempt
+            messages.error(request, "Invalid email or password. Please try again.")
     else:
         form = AuthenticationForm()
 
@@ -92,6 +100,23 @@ def custom_logout(request):
   
 
 
+from .forms import ProfileEditForm
+
+@login_required
+def edit_profile(request):
+    if request.method == "POST":
+        form = ProfileEditForm(request.POST, request.FILES, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Your profile has been updated successfully!")
+            return redirect(request.META.get("HTTP_REFERER", "employee_dashboard"))
+    else:
+        form = ProfileEditForm(instance=request.user)
+
+    return render(request, "accounts/edit_profile_modal.html", {"form": form})
+
+
+
 
 # ---------------------------
 # User Management (Admin only)
@@ -109,6 +134,13 @@ def user_management(request):
     )
 
 
+from django.urls import reverse
+from django.core.mail import send_mail
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+import uuid
+
 @login_required
 @company_admin_required
 def send_invite(request):
@@ -120,11 +152,15 @@ def send_invite(request):
             invite.invited_by = request.user
             invite.save()
 
-            # Send email with tokenized link
-            invite_link = request.build_absolute_uri(f"/invite/accept/{invite.token}/")
+            # Build URL safely with reverse
+            invite_path = reverse("accept_invite", args=[str(invite.token)])
+            invite_link = request.build_absolute_uri(invite_path)
+
             send_mail(
                 "You're invited to SecureLink 360",
-                f"Hello,\n\nYou have been invited to join {request.user.company.name} on SecureLink 360.\n\nClick the link to accept: {invite_link}\n\nThis link expires in 7 days.",
+                f"Hello,\n\nYou have been invited to join {request.user.company.name} on SecureLink 360."
+                f"\n\nClick the link to accept: {invite_link}"
+                f"\n\nThis link expires in 7 days.",
                 settings.DEFAULT_FROM_EMAIL,
                 [invite.email],
             )
@@ -134,6 +170,32 @@ def send_invite(request):
         form = InviteUserForm()
 
     return render(request, "companies/admin/send_invite.html", {"form": form})
+
+
+@login_required
+@company_admin_required
+def resend_invite(request, invite_id):
+    invite = get_object_or_404(UserInvite, id=invite_id, company=request.user.company)
+
+    # Refresh token if expired
+    if invite.is_expired():
+        invite.token = uuid.uuid4()
+        invite.created_at = timezone.now()
+        invite.save()
+
+    invite_path = reverse("accept_invite", args=[str(invite.token)])
+    invite_url = request.build_absolute_uri(invite_path)
+
+    send_mail(
+        subject="Your invitation link (resend) - SecureLink 360",
+        message=f"Here’s your updated invite link: {invite_url}",
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[invite.email],
+    )
+
+    messages.success(request, f"Resent invite to {invite.email}")
+    return redirect("user_management")
+
 
 
 @login_required
@@ -161,27 +223,6 @@ def deactivate_user(request, user_id):
 
 @login_required
 @company_admin_required
-def resend_invite(request, invite_id):
-    invite = get_object_or_404(UserInvite, id=invite_id, company=request.user.company)
-
-    if invite.is_expired():
-        invite.token = uuid.uuid4()
-        invite.created_at = timezone.now()
-        invite.save()
-
-    invite_url = request.build_absolute_uri(reverse("accept_invite", args=[invite.token]))
-    send_mail(
-        subject="Your invitation link (resend) - SecureLink360",
-        message=f"Here’s your updated invite link: {invite_url}",
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[invite.email],
-    )
-
-    return redirect("user_management")
-
-
-@login_required
-@company_admin_required
 def revoke_invite(request, invite_id):
     invite = get_object_or_404(UserInvite, id=invite_id, company=request.user.company)
     invite.delete()
@@ -194,12 +235,22 @@ def revoke_invite(request, invite_id):
 def accept_invite(request, token):
     invite = get_object_or_404(UserInvite, token=token, accepted=False)
 
+    # If invite expired
     if invite.is_expired():
         return render(request, "companies/invite_expired.html")
 
+    # If someone is logged in but doesn't match the invite email → force logout
+    if request.user.is_authenticated:
+        if request.user.email.lower() != invite.email.lower():
+            logout(request)
+            # reload the same invite link with a fresh session
+            return redirect(request.path)
+
     if request.method == "POST":
+        # Always bind the form to the invited user (not any logged-in user)
         user = User(email=invite.email, company=invite.company)
         form = InviteAcceptanceForm(request.POST, user=user)
+
         if form.is_valid():
             user.first_name = form.cleaned_data["first_name"]
             user.last_name = form.cleaned_data["last_name"]
@@ -211,11 +262,14 @@ def accept_invite(request, token):
             invite.save()
 
             login(request, user)
+
+            # Redirect based on role
             if user.role == User.Roles.ADMIN:
                 return redirect("admin_dashboard")
             elif user.role == User.Roles.MANAGER:
                 return redirect("manager_dashboard")
             return redirect("employee_dashboard")
+
     else:
         form = InviteAcceptanceForm(user=User(email=invite.email))
 

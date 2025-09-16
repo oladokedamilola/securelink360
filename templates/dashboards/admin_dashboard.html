@@ -186,17 +186,17 @@
     gap: 1.5rem;
 }
 .summary-card {
-    background: linear-gradient(135deg, #1976D2, #2196F3);
-    color: #fff;
-    border-radius: var(--border-radius);
-    padding: 1.75rem 1.25rem;
-    text-align: center;
-    box-shadow: var(--box-shadow);
-    transition: var(--transition);
-    cursor: default;
-    position: relative;
-    overflow: hidden;
-    height: 100%;
+  background: linear-gradient(135deg, #1976D2, #2196F3);
+  color: #fff;
+  border-radius: var(--border-radius);
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  box-shadow: var(--box-shadow);
+  transition: var(--transition);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+  height: 100%;
 }
 .summary-card::before {
     content: '';
@@ -209,6 +209,25 @@
     transform: rotate(45deg);
     transition: var(--transition);
     opacity: 0;
+}
+.summary-card i {
+  display: block;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+/* Devices (primary blue) */
+.summary-card.card-devices {
+  background: linear-gradient(135deg, var(--primary-color), #42A5F5);
+}
+
+/* Alerts (danger red) */
+.summary-card.card-alerts {
+  background: linear-gradient(135deg, var(--danger-color), #E57373);
+}
+
+/* Users Onboarded (success green) */
+.summary-card.card-users {
+  background: linear-gradient(135deg, var(--success-color), #81C784);
 }
 .summary-card:hover::before { opacity: 1; }
 .summary-card:hover { transform: translateY(-8px); }
@@ -275,6 +294,7 @@
 .summary-cards-container { animation-delay: 0.2s; }
 .dashboard-grid { animation-delay: 0.3s; }
 </style>
+
 {% endblock %}
 
 {% block content %}
@@ -284,28 +304,37 @@
     <div class="dashboard-greeting">
         Welcome back, {{ user.full_name|default:"Admin" }}! 👋
     </div>
-
-    <!-- User Profile Card -->
-    <div class="card shadow rounded-4 p-3 user-card">
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                {% if user.profile_image %}
-                    <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle border border-3">
-                {% else %}
-                    <img src="{% static 'images/user.jpg' %}" alt="Default Profile" class="rounded-circle border border-3">
-                {% endif %}
-            </div>
-            <div class="col">
+<!-- User Profile Card -->
+<div class="card shadow rounded-4 p-3 user-card">
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            {% if user.profile_image %}
+                <img src="{{ user.profile_image.url }}" alt="Profile" class="rounded-circle border border-3" width="80" height="80">
+            {% else %}
+                <img src="{% static 'images/user.jpg' %}" alt="Default Profile" class="rounded-circle border border-3" width="80" height="80">
+            {% endif %}
+        </div>
+        <div class="col">
+            <div class="d-flex align-items-center justify-content-between">
                 <h4 class="mb-3">{{ user.full_name|default:"Admin" }}</h4>
-                <div class="user-details-grid">
-                    <div class="user-detail-item"><strong>Company:</strong> {{ company.name }}</div>
-                    <div class="user-detail-item"><strong>Email:</strong> {{ user.email }}</div>
-                    <div class="user-detail-item"><strong>Role:</strong> Administrator</div>
-                    <div class="user-detail-item"><strong>Status:</strong> <span class="badge bg-success">Active</span></div>
+                <!-- Edit Icon -->
+                <a href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal"
+                   class="text-muted ms-2" data-bs-toggle="tooltip" title="Edit Profile">
+                    <i class="fas fa-pen"></i>
+                </a>
+            </div>
+            <div class="user-details-grid">
+                <div class="user-detail-item"><strong>Company:</strong> {{ company.name }}</div>
+                <div class="user-detail-item"><strong>Email:</strong> {{ user.email }}</div>
+                <div class="user-detail-item"><strong>Role:</strong> Administrator</div>
+                <div class="user-detail-item"><strong>Status:</strong>
+                    <span class="badge bg-success">Active</span>
                 </div>
             </div>
         </div>
     </div>
+</div>
+
 
 <!-- Onboarding Widget -->
 <div class="onboarding-widget">
@@ -376,15 +405,35 @@
 </div>
 
 
-    <!-- Summary Cards -->
-    <div class="summary-cards-container">
-        <div class="summary-cards-row">
-            <div class="summary-card"><h3>{{ devices|length }}</h3><p>Devices Registered</p></div>
-            <div class="summary-card"><h3>{{ alerts|length }}</h3><p>Recent Alerts</p></div>
-            <div class="summary-card"><h3>{{ license.seats }}</h3><p>Total License Seats</p></div>
-            <div class="summary-card"><h3>{{ onboarding.users_onboarded|default:"0" }}</h3><p>Users Onboarded</p></div>
-        </div>
+<!-- Summary Cards -->
+<div class="summary-cards-container">
+  <div class="summary-cards-row">
+
+    <!-- Devices -->
+    <div class="summary-card card-devices">
+      <i class="fas fa-desktop fa-2x mb-2"></i>
+      <h3>{{ devices|length }}</h3>
+      <p>Devices Registered</p>
     </div>
+
+    <!-- Alerts -->
+    <div class="summary-card card-alerts">
+      <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+      <h3>{{ alerts|length }}</h3>
+      <p>Recent Alerts</p>
+    </div>
+
+    <!-- Users Onboarded -->
+    <div class="summary-card card-users">
+      <i class="fas fa-user-plus fa-2x mb-2"></i>
+      <h3>{{ onboarding.users_onboarded|default:"0" }}</h3>
+      <p>Users Onboarded</p>
+    </div>
+
+  </div>
+</div>
+
+
 
     <!-- Dashboard Grid Widgets -->
     <div class="dashboard-grid">
@@ -401,22 +450,7 @@
                 {% endif %}
             </ul>
         </div>
-
-        <div class="card">
-            <h5><i class="fas fa-exclamation-triangle"></i> Recent Alerts</h5>
-            <ul>
-                {% for alert in alerts|slice:":5" %}
-                    <li>[{{ alert.timestamp|date:"M d, H:i" }}] {{ alert.message }}</li>
-                {% empty %}
-                    <li>No alerts found. Good job!</li>
-                {% endfor %}
-                {% if alerts|length > 5 %}
-                    <li class="text-muted">+{{ alerts|length|add:"-5" }} more alerts</li>
-                {% endif %}
-            </ul>
-        </div>
     </div>
-</div>
 
 <!-- Onboarding Modal -->
 {% if not onboarding.complete %}
